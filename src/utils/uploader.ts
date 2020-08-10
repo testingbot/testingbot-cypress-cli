@@ -1,81 +1,48 @@
-import archiver, { ArchiverError } from 'archiver';
 import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import request from 'request';
 import log from './../log';
-
-const fsPromises = fs.promises;
-interface UploadSettings {
-	cypress_path: string;
-}
+import { IConfig } from './config';
 
 export default class Uploader {
-	private settings: UploadSettings;
+	private config: IConfig;
 
-	constructor(settings: UploadSettings) {
-		this.settings = settings;
+	constructor(config: IConfig) {
+		this.config = config;
 	}
 
-	public async start(): Promise<string> {
+	public async start(zipFile: string): Promise<string> {
 		return new Promise((resolve, reject) => {
-			let tempZipFile: string | undefined;
+			const requestOptions = {
+				method: 'POST',
+				uri: 'https://api.testingbot.com/v1/storage',
+				auth: {
+					user: this.config.auth.key,
+					pass: this.config.auth.secret,
+					sendImmediately: true,
+				},
+				formData: {
+					file: fs.createReadStream(zipFile),
+				},
+			};
 
-			try {
-				tempZipFile = path.join(os.tmpdir(), 'upload.zip');
-				const output = fs.createWriteStream(tempZipFile);
-				const archive = archiver('zip', {
-					zlib: { level: 9 },
-				});
-
-				archive.on('warning', (err: ArchiverError) => {
-					if (err.code === 'ENOENT') {
-						log.warn(err);
-					} else {
-						reject(err);
-					}
-				});
-
-				// listen for all archive data to be written
-				// 'close' event is fired only when a file descriptor is involved
-				output.on('close', () => {
-					resolve(tempZipFile);
-				});
-
-				archive.on('error', (err: ArchiverError) => {
-					reject(err);
-				});
-
-				archive.pipe(output);
-
-				const allowedFileTypes = [
-					'js',
-					'json',
-					'txt',
-					'ts',
-					'feature',
-					'features',
-				];
-				allowedFileTypes.forEach((fileType) => {
-					archive.glob(`**/*.${fileType}`, {
-						cwd: this.settings.cypress_path,
-						matchBase: true,
-						ignore: [
-							'node_modules/**',
-							'package-lock.json',
-							'package.json',
-							'testingbot-package.json',
-						],
-					});
-				});
-
-				archive.finalize();
-			} catch (e) {
-				reject(e);
-			} finally {
-				if (tempZipFile) {
-					fsPromises.unlink(tempZipFile);
+			request(requestOptions, function (error, response) {
+				if (error) {
+					return reject(error);
 				}
-			}
+				let responseBody = null;
+				if (response) {
+					if (response.body && typeof response.body === 'string') {
+						response.body = JSON.parse(response.body);
+					}
+					if (response.statusCode.toString().substring(0, 1) === '2') {
+						responseBody = response.body;
+					} else {
+						return reject(response.body);
+					}
+				}
+
+				resolve(responseBody);
+			});
 		});
 	}
 }

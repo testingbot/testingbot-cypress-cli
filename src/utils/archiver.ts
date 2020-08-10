@@ -3,17 +3,15 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import log from './../log';
+import { IConfig } from './config';
 
 const fsPromises = fs.promises;
-interface ArchiveSettings {
-	cypress_path: string;
-}
 
 export default class Archiver {
-	private settings: ArchiveSettings;
+	private config: IConfig;
 
-	constructor(settings: ArchiveSettings) {
-		this.settings = settings;
+	constructor(config: IConfig) {
+		this.config = config;
 	}
 
 	public async start(): Promise<string> {
@@ -57,7 +55,7 @@ export default class Archiver {
 				];
 				allowedFileTypes.forEach((fileType) => {
 					archive.glob(`**/*.${fileType}`, {
-						cwd: this.settings.cypress_path,
+						cwd: this.config.run_settings.cypress_project_dir,
 						matchBase: true,
 						ignore: [
 							'node_modules/**',
@@ -71,10 +69,6 @@ export default class Archiver {
 				archive.finalize();
 			} catch (e) {
 				reject(e);
-			} finally {
-				if (tempZipFile) {
-					fsPromises.unlink(tempZipFile);
-				}
 			}
 		});
 	}

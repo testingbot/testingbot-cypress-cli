@@ -1,5 +1,6 @@
 import * as yargs from 'yargs';
 import InitProject from './commands/init';
+import RunProject from './commands/run';
 
 process.removeAllListeners('warning');
 
@@ -23,6 +24,22 @@ yargs
 			.wrap(null).argv;
 
 		return new InitProject(initArgv);
+	})
+	.command('run', 'more info', function (yargs) {
+		const initArgv = yargs
+			.usage('usage: $0 run [options]')
+			.options({
+				cf: {
+					alias: 'config-file',
+					default: 'testingbot.json',
+					description: 'The path to the testingbot.json config file',
+					type: 'string',
+					demand: true,
+				},
+			})
+			.help('help')
+			.wrap(null).argv;
+		return new RunProject(initArgv);
 	})
 	.alias('h', 'help')
 	.help('help')

@@ -105,3 +105,5 @@ dist
 
 # typescript output
 lib/
+
+testingbot.json
