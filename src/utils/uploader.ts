@@ -14,7 +14,7 @@ export default class Uploader {
 		return new Promise((resolve, reject) => {
 			const requestOptions = {
 				method: 'POST',
-				uri: 'https://api.testingbot.com/v1/storage',
+				uri: `https://api.testingbot.com/v1/cypress`,
 				auth: {
 					user: this.config.auth.key,
 					pass: this.config.auth.secret,
@@ -22,6 +22,11 @@ export default class Uploader {
 				},
 				formData: {
 					file: fs.createReadStream(zipFile),
+					capabilities: JSON.stringify([{
+						platform: 'MOJAVE',
+						browserName: 'chrome',
+						version: '82'
+					}])
 				},
 			};
 

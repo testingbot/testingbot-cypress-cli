@@ -13,15 +13,21 @@ export default class RunProject {
 	private uploader: Uploader | undefined = undefined;
 
 	constructor(argv: Arguments) {
-		this.start();
+		try {
+			this.start();
+		} catch (e) {
+			console.log('error', e)
+			log.error(e)
+		}
 	}
 
 	public async start(): Promise<void> {
 		const config = await Config.getConfig();
-		const configValidationError = Config.validate(config);
-		if (configValidationError) {
+		const configValidationErrors = Config.validate(config);
+
+		if (configValidationErrors.length > 0) {
 			throw new Error(
-				`Configuration error: ${configValidationError.join('\n')}`,
+				`Configuration errors: ${configValidationErrors.join('\n')}`,
 			);
 		}
 
