@@ -7,24 +7,27 @@ interface IAuth {
 	secret: string;
 }
 
-interface IBrowser {
+export interface ICapability {
 	browserName: string;
 	platform: string;
-	versions: string[];
+	version: string | number;
+	localHttpPorts?: number[];
 }
 
 interface IRunSettings {
-	cypress_project_dir: string;
-	project_name: string;
-	build_name: string;
-	parallel_count: number;
-	npm_dependencies: any;
-	package_config_options: any;
+	cypress_project_dir: string
+	project_name: string
+	build_name: string
+	parallel_count: number
+	npm_dependencies: any
+	package_config_options: any
+	start_tunnel: boolean
+	local_ports: number[]
 }
 
 export interface IConfig {
 	auth: IAuth;
-	browsers: IBrowser[];
+	browsers: ICapability[];
 	run_settings: IRunSettings;
 }
 

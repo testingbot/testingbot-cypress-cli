@@ -7,13 +7,8 @@ export default (): string => {
 		browsers: [
 			{
 				browserName: 'chrome',
-				platform: 'Windows 10',
-				versions: ['78', '77'],
-			},
-			{
-				browserName: 'firefox',
-				os: 'Mojave',
-				versions: ['74', '75'],
+				platform: 'MOJAVE',
+				version: 83
 			},
 		],
 		run_settings: {
@@ -24,6 +19,8 @@ export default (): string => {
 			parallel_count: 'How many tests you want to run in parallel',
 			npm_dependencies: {},
 			package_config_options: {},
+			start_tunnel: true,
+			local_ports: []
 		},
 	};
 

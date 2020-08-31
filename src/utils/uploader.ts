@@ -1,7 +1,10 @@
 import fs from 'fs';
 import request from 'request';
-import log from './../log';
-import { IConfig } from './config';
+import { IConfig, ICapability } from './config';
+
+interface IResponse {
+	id: number
+}
 
 export default class Uploader {
 	private config: IConfig;
@@ -10,8 +13,14 @@ export default class Uploader {
 		this.config = config;
 	}
 
-	public async start(zipFile: string): Promise<string> {
+	public async start(zipFile: string): Promise<IResponse> {
 		return new Promise((resolve, reject) => {
+			const capabilities = this.config.browsers;
+			if (this.config.run_settings.local_ports.length > 0) {
+				capabilities.map((capability: ICapability) => {
+					capability.localHttpPorts = this.config.run_settings.local_ports
+				})
+			}
 			const requestOptions = {
 				method: 'POST',
 				uri: `https://api.testingbot.com/v1/cypress`,
@@ -22,11 +31,7 @@ export default class Uploader {
 				},
 				formData: {
 					file: fs.createReadStream(zipFile),
-					capabilities: JSON.stringify([{
-						platform: 'MOJAVE',
-						browserName: 'chrome',
-						version: '82'
-					}])
+					capabilities: JSON.stringify(capabilities)
 				},
 			};
 
@@ -34,10 +39,10 @@ export default class Uploader {
 				if (error) {
 					return reject(error);
 				}
-				let responseBody = null;
+				let responseBody: IResponse = { id: 0 };
 				if (response) {
 					if (response.body && typeof response.body === 'string') {
-						response.body = JSON.parse(response.body);
+						response.body = JSON.parse(response.body) as IResponse;
 					}
 					if (response.statusCode.toString().substring(0, 1) === '2') {
 						responseBody = response.body;
