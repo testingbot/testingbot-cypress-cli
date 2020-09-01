@@ -1,6 +1,7 @@
 import request from 'request';
 import log from './../log';
 import { IConfig } from './config';
+import ora from 'ora';
 
 interface IPollResponse {
 	status: string
@@ -18,14 +19,15 @@ export default class Poller {
 		this.config = config;
 	}
 
-	public async check(id: number): Promise<IPollResponse> {
+	public async check(id: number, spinner: ora.Ora): Promise<IPollResponse> {
 		return new Promise((resolve, reject) => {
 			this.intervalId = setInterval(async () => {
 				const response = await this.getStatus(id);
-				log.info('checking', response);
 				
 				if (response.status === 'DONE') {
-					if (response.errors.length === 0) {
+					spinner.succeed('Cypress Project has finished running on TestingBot');
+					log.info(response);
+					if (Object.keys(response.errors).length === 0) {
 						if (this.intervalId) {
 							clearInterval(this.intervalId);
 							this.intervalId = undefined;

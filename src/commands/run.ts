@@ -5,6 +5,7 @@ import Poller from '../utils/poller';
 import Config from '../utils/config';
 import Tunnel from '../utils/tunnel';
 import ora from 'ora';
+import chalk from 'chalk';
 
 interface Arguments {
 	[x: string]: unknown;
@@ -16,24 +17,28 @@ export default class RunProject {
 	private uploader: Uploader | undefined = undefined;
 	private poller: Poller | undefined = undefined;
 	private tunnel: Tunnel | undefined = undefined;
+	private configFilePath: string | undefined = undefined;
 
 	constructor(argv: Arguments) {
-		try {
-			this.start();
-		} catch (e) {
-			console.log('error', e)
-			log.error(e)
+		if (typeof(argv.cf) === 'string') {
+			this.configFilePath = argv.cf;
 		}
 	}
 
 	public async start(): Promise<void> {
-		const config = await Config.getConfig();
+		let config;
+		try {
+			config = await Config.getConfig(this.configFilePath || `testingbot.json`);
+		} catch (e) {
+			console.error(chalk.white.bgRed.bold(`Configuration file problem: ${e.message} for Config File: ${this.configFilePath || `testingbot.json`}`));
+			return;
+		}
+		
 		const configValidationErrors = Config.validate(config);
 
 		if (configValidationErrors.length > 0) {
-			throw new Error(
-				`Configuration errors: ${configValidationErrors.join('\n')}`,
-			);
+			console.error(chalk.white.bgRed.bold(`Configuration errors: ${configValidationErrors.join('\n')}`));
+			return;
 		}
 
 		this.archiver = new Archiver(config);
@@ -44,7 +49,8 @@ export default class RunProject {
 		let zipFile: string;
 
 		if (!this.archiver || !this.uploader) {
-			throw new Error(`Invalid state, please try again`);
+			console.error(chalk.white.bgRed.bold(`Invalid state, please try again`));
+			return;
 		}
 
 		if (config.run_settings.start_tunnel) {
@@ -53,24 +59,23 @@ export default class RunProject {
 			tunnelSpinner.succeed('TestingBot Tunnel Ready');
 		}
 
+		const uploadSpinner = ora('Starting Project on TestingBot').start();
 		try {
 			zipFile = await this.archiver.start();
 		} catch (err) {
-			log.error(err);
+			console.error(err);
 			return;
 		}
 
 		try {
-			const uploadSpinner = ora('Starting Project on TestingBot').start();
-
 			const response = await this.uploader.start(zipFile);
 			uploadSpinner.succeed('Cypress is now running on TestingBot')
 
-			const poller = await this.poller.check(response.id)
+			const poller = await this.poller.check(response.id, uploadSpinner)
 			log.info(poller)
 
 		} catch (err) {
-			log.error(err);
+			console.error(chalk.white.bgRed.bold(err));
 			if (config.run_settings.start_tunnel) {
 				await this.tunnel.stop();
 			}

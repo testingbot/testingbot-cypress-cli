@@ -23,7 +23,7 @@ yargs
 			.help('help')
 			.wrap(null).argv;
 
-		return new InitProject(initArgv);
+			return new InitProject(initArgv);
 	})
 	.command('run', 'more info', function (yargs) {
 		const initArgv = yargs
@@ -39,7 +39,8 @@ yargs
 			})
 			.help('help')
 			.wrap(null).argv;
-		return new RunProject(initArgv);
+			const runProject = new RunProject(initArgv);
+			runProject.start();
 	})
 	.alias('h', 'help')
 	.help('help')

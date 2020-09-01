@@ -12,11 +12,11 @@ export interface ICapability {
 	platform: string;
 	version: string | number;
 	localHttpPorts?: number[];
+	build?: string;
 }
 
 interface IRunSettings {
 	cypress_project_dir: string
-	project_name: string
 	build_name: string
 	parallel_count: number
 	npm_dependencies: any
@@ -29,11 +29,12 @@ export interface IConfig {
 	auth: IAuth;
 	browsers: ICapability[];
 	run_settings: IRunSettings;
+	tunnel_settings: any;
 }
 
 export default {
-	async getConfig(): Promise<IConfig> {
-		const configString = await fsPromises.readFile(`testingbot.json`);
+	async getConfig(configFilePath: string): Promise<IConfig> {
+		const configString = await fsPromises.readFile(configFilePath);
 		const configObject = JSON.parse(configString.toString());
 
 		return configObject as IConfig;

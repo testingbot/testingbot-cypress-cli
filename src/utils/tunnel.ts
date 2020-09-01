@@ -12,10 +12,12 @@ export default class Tunnel {
 	
 	public async start(): Promise<void> {
 		return new Promise((resolve, reject) => {
-			testingbotTunnel({
+			const tunnelOpts = Object.assign({
 				apiKey: this.config.auth.key,
 				apiSecret: this.config.auth.secret,
-			}, (err: any, tunnel: any) => {
+			}, this.config.tunnel_settings);
+
+			testingbotTunnel(tunnelOpts, (err: any, tunnel: any) => {
 				if (err) {
 					reject(err);
 					return;

@@ -14,7 +14,6 @@ export default (): string => {
 		run_settings: {
 			cypress_project_dir:
 				'/path/to/directory-that-contains-<cypress.json>-file',
-			project_name: 'project-name',
 			build_name: 'build-name',
 			parallel_count: 'How many tests you want to run in parallel',
 			npm_dependencies: {},
@@ -22,6 +21,9 @@ export default (): string => {
 			start_tunnel: true,
 			local_ports: []
 		},
+		tunnel_settings: {
+			verbose: false
+		}
 	};
 
 	return JSON.stringify(config, null, 4);

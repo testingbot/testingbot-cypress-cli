@@ -5,8 +5,6 @@ import os from 'os';
 import log from './../log';
 import { IConfig } from './config';
 
-const fsPromises = fs.promises;
-
 export default class Archiver {
 	private config: IConfig;
 
