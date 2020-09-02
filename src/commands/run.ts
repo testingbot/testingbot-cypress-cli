@@ -72,7 +72,7 @@ export default class RunProject {
 			const response = await this.uploader.start(zipFile);
 			uploadSpinner.succeed('Cypress is now running on TestingBot')
 			console.log('will join')
-			const realTime = io.connect('hub.testingbot.com:3031', {secure: true});
+			const realTime = io.connect('https://hub.testingbot.com:3031');
 			console.log('joining', `cypress_${response.id}`)
 			realTime.emit('join', `cypress_${response.id}`)
 			realTime.on('connect', () => {
