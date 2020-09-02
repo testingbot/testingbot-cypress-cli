@@ -15,7 +15,6 @@ export default (): string => {
 			cypress_project_dir:
 				'/path/to/directory-that-contains-<cypress.json>-file',
 			build_name: 'build-name',
-			parallel_count: 'How many tests you want to run in parallel',
 			npm_dependencies: {},
 			package_config_options: {},
 			start_tunnel: true,

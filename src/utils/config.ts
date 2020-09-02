@@ -18,7 +18,6 @@ export interface ICapability {
 interface IRunSettings {
 	cypress_project_dir: string
 	build_name: string
-	parallel_count: number
 	npm_dependencies: any
 	package_config_options: any
 	start_tunnel: boolean

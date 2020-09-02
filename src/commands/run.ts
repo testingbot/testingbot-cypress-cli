@@ -6,6 +6,7 @@ import Config from '../utils/config';
 import Tunnel from '../utils/tunnel';
 import ora from 'ora';
 import chalk from 'chalk';
+import io from 'socket.io-client';
 
 interface Arguments {
 	[x: string]: unknown;
@@ -70,6 +71,24 @@ export default class RunProject {
 		try {
 			const response = await this.uploader.start(zipFile);
 			uploadSpinner.succeed('Cypress is now running on TestingBot')
+			console.log('will join')
+			const realTime = io.connect('hub.testingbot.com:3031', {secure: true});
+			console.log('joining', `cypress_${response.id}`)
+			realTime.emit('join', `cypress_${response.id}`)
+			realTime.on('connect', () => {
+				console.log('connected')
+			})
+			realTime.on('disconnect', () => {
+				console.log('disconnect')
+			})
+			realTime.on('event', (data: any) => {
+				console.log('event', data)
+			});
+			realTime.on('error', (err: any) => {
+				console.error(err)
+			})
+			realTime.on("cypress_data", (msg: any) => console.log(msg));
+			realTime.on("cypress_error", (msg: any) => console.log(msg));
 
 			const poller = await this.poller.check(response.id, uploadSpinner)
 			log.info(poller)
