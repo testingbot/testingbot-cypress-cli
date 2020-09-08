@@ -3,9 +3,28 @@ import log from './../log';
 import { IConfig } from './config';
 import ora from 'ora';
 
-interface IPollResponse {
-	status: string
+interface ITest {
+	sessionId: string
+}
+
+enum IStatus {
+	'WAITING',
+	'READY',
+	'FAILED',
+	'DONE'
+}
+
+interface IRun {
+	status: IStatus
+	capabilities: any
 	errors: string[]
+	test?: ITest
+}
+
+interface IPollResponse {
+	runs: IRun[]
+	version: string
+	build?: string
 }
 
 export default class Poller {
@@ -22,12 +41,15 @@ export default class Poller {
 	public async check(id: number, spinner: ora.Ora): Promise<IPollResponse> {
 		return new Promise((resolve, reject) => {
 			this.intervalId = setInterval(async () => {
-				const response = await this.getStatus(id);
-				
-				if (response.status === 'DONE') {
+				const response = await this.getApiResponse(id);
+				const status = this.getStatus(response);
+
+				if (status === IStatus.DONE) {
 					spinner.succeed('Cypress Project has finished running on TestingBot');
 					log.info(response);
-					if (Object.keys(response.errors).length === 0) {
+
+					const errors = this.getErrors(response);
+					if (errors.length === 0) {
 						if (this.intervalId) {
 							clearInterval(this.intervalId);
 							this.intervalId = undefined;
@@ -39,16 +61,16 @@ export default class Poller {
 						clearInterval(this.intervalId);
 						this.intervalId = undefined;
 					}
-					return reject(response);
+					return reject(errors);
 				}
 
-				if (response.status === 'WAITING' && this.retryNumber > Poller.MAX_RETRIES_WAITING) {
+				if (status === IStatus.WAITING && this.retryNumber > Poller.MAX_RETRIES_WAITING) {
 					if (this.intervalId) {
 						clearInterval(this.intervalId);
 						this.intervalId = undefined;
 					}
 					return reject(new Error(`Waited too long to retrieve information, please try again later.`));
-				} else if (response.status === 'READY' && this.retryNumber > Poller.MAX_RETRIES_READY) {
+				} else if (status === IStatus.READY && this.retryNumber > Poller.MAX_RETRIES_READY) {
 					if (this.intervalId) {
 						clearInterval(this.intervalId);
 						this.intervalId = undefined;
@@ -61,7 +83,36 @@ export default class Poller {
 		});
 	}
 
-	private async getStatus(id: number): Promise<IPollResponse> {
+	private getErrors(response: IPollResponse): string[] {
+		const errors: string[] = []
+		for (let i = 0; i < response.runs.length; i++) {
+			const testRun = response.runs[i];
+			if (testRun.errors.length > 0) {
+				errors.concat(testRun.errors);
+			}
+		}
+
+		return errors;
+	}
+
+	private getStatus(response: IPollResponse): IStatus {
+		let status = IStatus.DONE
+
+		for (let i = 0; i < response.runs.length; i++) {
+			const testRun = response.runs[i];
+			if (testRun.status === IStatus.DONE) {
+				continue;
+			} else if (testRun.status === IStatus.WAITING) {
+				// whenever one is waiting, the whole batch is waiting
+				return IStatus.WAITING;
+			}
+			status = testRun.status;
+		}
+
+		return status;
+	}
+
+	private async getApiResponse(id: number): Promise<IPollResponse> {
 		return new Promise((resolve, reject) => {
 			const requestOptions = {
 				method: 'GET',
@@ -77,16 +128,14 @@ export default class Poller {
 				if (error) {
 					return reject(error);
 				}
-				let responseBody: IPollResponse = { status: 'WAITING', errors: [] };
-				if (response) {
-					if (response.body && typeof response.body === 'string') {
-						response.body = JSON.parse(response.body) as IPollResponse;
-					}
-					if (response.statusCode.toString().substring(0, 1) === '2') {
-						responseBody = response.body;
-					} else {
-						return reject(response.body);
-					}
+				let responseBody: IPollResponse;
+				if (response.body && typeof response.body === 'string') {
+					response.body = JSON.parse(response.body) as IPollResponse;
+				}
+				if (response.statusCode.toString().substring(0, 1) === '2') {
+					responseBody = response.body;
+				} else {
+					return reject(response.body);
 				}
 
 				resolve(responseBody);

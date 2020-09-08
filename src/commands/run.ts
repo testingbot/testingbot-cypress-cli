@@ -2,7 +2,7 @@ import log from '../log';
 import Archiver from '../utils/archiver';
 import Uploader from '../utils/uploader';
 import Poller from '../utils/poller';
-import Config from '../utils/config';
+import Config, { IConfig } from '../utils/config';
 import Tunnel from '../utils/tunnel';
 import ora from 'ora';
 import chalk from 'chalk';
@@ -19,6 +19,7 @@ export default class RunProject {
 	private poller: Poller | undefined = undefined;
 	private tunnel: Tunnel | undefined = undefined;
 	private configFilePath: string | undefined = undefined;
+	private config: IConfig | undefined = undefined;
 
 	constructor(argv: Arguments) {
 		if (typeof(argv.cf) === 'string') {
@@ -26,8 +27,38 @@ export default class RunProject {
 		}
 	}
 
+	public exitHandler(): void {
+		if (this.config && this.config.run_settings.start_tunnel) {
+			if (this.tunnel) {
+				this.tunnel.stop().catch(console.error);
+			}
+		}
+	}
+
+	public errorHandler(): void {
+		console.error(chalk.white.bgRed.bold(`A fatal error occurred, please report this to testingbot.com`));
+		this.exitHandler();
+	}
+
+	private registerCloseHandlers(): void {
+		//do something when app is closing
+		process.on('exit', this.exitHandler.bind(this,{cleanup:true}));
+		process.on('SIGINT', this.exitHandler.bind(this, {exit:true}));
+		process.on('SIGUSR1', this.exitHandler.bind(this, {exit:true}));
+		process.on('SIGUSR2', this.exitHandler.bind(this, {exit:true}));
+		process.on('uncaughtException', this.errorHandler.bind(this, {exit:true}));
+	}
+
+	private realTimeMessage(message: string): void {
+		console.log(message);
+	}
+
+	private realTimeError(message: string): void {
+		console.error(message);
+	}
+
 	public async start(): Promise<void> {
-		let config;
+		let config: IConfig;
 		try {
 			config = await Config.getConfig(this.configFilePath || `testingbot.json`);
 		} catch (e) {
@@ -41,6 +72,8 @@ export default class RunProject {
 			console.error(chalk.white.bgRed.bold(`Configuration errors: ${configValidationErrors.join('\n')}`));
 			return;
 		}
+
+		this.config = config;
 
 		this.archiver = new Archiver(config);
 		this.uploader = new Uploader(config);
@@ -68,37 +101,27 @@ export default class RunProject {
 			return;
 		}
 
+		this.registerCloseHandlers();
+
 		try {
 			const response = await this.uploader.start(zipFile);
 			uploadSpinner.succeed('Cypress is now running on TestingBot')
-			console.log('will join')
 			const realTime = io.connect('https://hub.testingbot.com:3031');
-			console.log('joining', `cypress_${response.id}`)
 			realTime.emit('join', `cypress_${response.id}`)
-			realTime.on('connect', () => {
-				console.log('connected')
-			})
-			realTime.on('disconnect', () => {
-				console.log('disconnect')
-			})
-			realTime.on('event', (data: any) => {
-				console.log('event', data)
-			});
-			realTime.on('error', (err: any) => {
-				console.error(err)
-			})
-			realTime.on("cypress_data", (msg: any) => console.log(msg));
-			realTime.on("cypress_error", (msg: any) => console.log(msg));
+			realTime.on('cypress_data', (msg: string) => this.realTimeMessage.bind(this, msg));
+			realTime.on('cypress_error', (msg: string) => this.realTimeError.bind(this, msg));
 
-			const poller = await this.poller.check(response.id, uploadSpinner)
+			const poller = await this.poller.check(response.id, uploadSpinner);
 			log.info(poller)
+
+			process.exit(0);
 
 		} catch (err) {
 			console.error(chalk.white.bgRed.bold(err));
 			if (config.run_settings.start_tunnel) {
 				await this.tunnel.stop();
 			}
-			return;
+			process.exit(1);
 		}
 	}
 }

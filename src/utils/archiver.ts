@@ -70,6 +70,21 @@ export default class Archiver {
 					});
 				});
 
+				let packageJSON = {};
+
+				if (typeof this.config.run_settings.package_config_options === 'object') {
+					Object.assign(packageJSON, this.config.run_settings.package_config_options);
+				}
+
+				if (typeof this.config.run_settings.npm_dependencies === 'object') {
+					Object.assign(packageJSON, {devDependencies: this.config.run_settings.npm_dependencies});
+				}
+
+				if (Object.keys(packageJSON).length > 0) {
+					let packageJSONString = JSON.stringify(packageJSON, null, 4);
+					archive.append(packageJSONString, { name: 'testingbot-package.json' });
+				}
+
 				archive.finalize();
 			} catch (e) {
 				reject(e);

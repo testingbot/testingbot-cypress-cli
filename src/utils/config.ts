@@ -34,9 +34,20 @@ export interface IConfig {
 export default {
 	async getConfig(configFilePath: string): Promise<IConfig> {
 		const configString = await fsPromises.readFile(configFilePath);
-		const configObject = JSON.parse(configString.toString());
+		const configObject: IConfig = JSON.parse(configString.toString());
 
-		return configObject as IConfig;
+		if (configObject.auth.key === '' || configObject.auth.key === '<Your TestingBot key>') {
+			if (process.env.TESTINGBOT_KEY) {
+				configObject.auth.key = process.env.TESTINGBOT_KEY;
+			}
+		}
+		if (configObject.auth.secret === '' || configObject.auth.secret === '<Your TestingBot secret>') {
+			if (process.env.TESTINGBOT_SECRET) {
+				configObject.auth.secret = process.env.TESTINGBOT_SECRET;
+			}
+		}
+		
+		return configObject;
 	},
 
 	validate(config: IConfig): string[] {
