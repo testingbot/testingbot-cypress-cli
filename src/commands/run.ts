@@ -30,8 +30,13 @@ export default class RunProject {
 	public exitHandler(): void {
 		if (this.config && this.config.run_settings.start_tunnel) {
 			if (this.tunnel) {
-				this.tunnel.stop().catch(console.error);
+				this.tunnel.stop().then(() => {
+					process.exit();
+				}).catch(console.error);
+				this.tunnel = undefined;
 			}
+		} else {
+			process.exit()
 		}
 	}
 

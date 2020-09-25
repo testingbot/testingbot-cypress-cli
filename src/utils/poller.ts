@@ -8,10 +8,10 @@ interface ITest {
 }
 
 enum IStatus {
-	'WAITING',
-	'READY',
-	'FAILED',
-	'DONE'
+	WAITING = 'WAITING',
+	READY = 'READY',
+	FAILED = 'FAILED',
+	DONE = 'DONE'
 }
 
 interface IRun {
