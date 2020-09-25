@@ -70,7 +70,7 @@ export default class Archiver {
 					});
 				});
 
-				let packageJSON = {};
+				const packageJSON = {};
 
 				if (typeof this.config.run_settings.package_config_options === 'object') {
 					Object.assign(packageJSON, this.config.run_settings.package_config_options);
@@ -81,7 +81,7 @@ export default class Archiver {
 				}
 
 				if (Object.keys(packageJSON).length > 0) {
-					let packageJSONString = JSON.stringify(packageJSON, null, 4);
+					const packageJSONString = JSON.stringify(packageJSON, null, 4);
 					archive.append(packageJSONString, { name: 'testingbot-package.json' });
 				}
 
