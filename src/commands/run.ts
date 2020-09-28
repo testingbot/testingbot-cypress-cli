@@ -1,12 +1,13 @@
 import log from '../log';
 import Archiver from '../utils/archiver';
 import Uploader from '../utils/uploader';
-import Poller from '../utils/poller';
+import Poller, { IRun, ITest } from '../utils/poller';
 import Config, { IConfig } from '../utils/config';
 import Tunnel from '../utils/tunnel';
 import ora from 'ora';
 import chalk from 'chalk';
 import io from 'socket.io-client';
+import { runInThisContext } from 'vm';
 
 interface Arguments {
 	[x: string]: unknown;
@@ -60,6 +61,29 @@ export default class RunProject {
 
 	private realTimeError(message: string): void {
 		console.error(message);
+	}
+
+	private parseErrors(runs: IRun[]): string[] {
+		let errors: string[] = []
+		for (let i = 0; i < runs.length; i++) {
+			if (runs[i].errors.length > 0) {
+				errors = errors.concat(runs[i].errors);
+			}
+		}
+
+		return errors;
+	}
+
+	private parseTestCases(runs: IRun[]): ITest[] {
+		let testCases: ITest[] = []
+		for (let i = 0; i < runs.length; i++) {
+			const testCase = runs[i].test;
+			if (testCase) {
+				testCases.push(testCase)
+			}
+		}
+
+		return testCases;
 	}
 
 	public async start(): Promise<void> {
@@ -117,9 +141,21 @@ export default class RunProject {
 			realTime.on('cypress_error', (msg: string) => this.realTimeError.bind(this, msg));
 
 			const poller = await this.poller.check(response.id, uploadSpinner);
-			log.info(poller)
+			const testCases = this.parseTestCases(poller.runs);
+			const errors = this.parseErrors(poller.runs);
+			
+			if (errors.length > 0) {
+				console.error(chalk.white.bgRed.bold(`Errors occurred:` + errors.join(`\n`)));
+			}
 
-			process.exit(0);
+			if (process.env.TESTINGBOT_CI && testCases.length > 0) {
+				for (let i = 0; i < testCases.length; i++) {
+					const testCase = testCases[i];
+					console.log(`TestingBotSessionId=${testCase.sessionId}`);
+				}
+			}
+
+			process.exit(errors.length === 0 ? 0 : 1);
 
 		} catch (err) {
 			console.error(chalk.white.bgRed.bold(err));

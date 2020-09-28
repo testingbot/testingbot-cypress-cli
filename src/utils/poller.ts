@@ -3,7 +3,7 @@ import log from './../log';
 import { IConfig } from './config';
 import ora from 'ora';
 
-interface ITest {
+export interface ITest {
 	sessionId: string
 }
 
@@ -14,7 +14,7 @@ enum IStatus {
 	DONE = 'DONE'
 }
 
-interface IRun {
+export interface IRun {
 	status: IStatus
 	capabilities: any
 	errors: string[]
@@ -46,7 +46,6 @@ export default class Poller {
 
 				if (status === IStatus.DONE) {
 					spinner.succeed('Cypress Project has finished running on TestingBot');
-					log.info(response);
 
 					const errors = this.getErrors(response);
 					if (errors.length === 0) {

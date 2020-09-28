@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "Run Cypress tests on TestingBot.com's Browser Grid",
   "main": "lib/index.js",
+  "bin": {
+    "testingbot-cypress": "lib/index.js"
+  },
   "scripts": {
     "lint": "eslint --ext ts src/",
     "make": "tsc",
     "start": "node lib/index.js",
-    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "publish-please": "publish-please",
+    "prepublishOnly": "publish-please guard"
   },
   "keywords": [
     "cypress",
@@ -31,6 +36,7 @@
     "archiver": "^5.0.0",
     "chalk": "^4.1.0",
     "ora": "^5.0.0",
+    "publish-please": "^5.5.1",
     "request": "^2.88.2",
     "socket.io-client": "^2.3.0",
     "testingbot-tunnel-launcher": "^1.1.7",
