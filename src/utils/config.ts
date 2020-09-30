@@ -22,6 +22,8 @@ interface IRunSettings {
 	package_config_options: any
 	start_tunnel: boolean
 	local_ports: number[]
+	exclude: string[]
+	realTimeLogs: boolean
 }
 
 export interface IConfig {

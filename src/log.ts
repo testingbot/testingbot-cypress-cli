@@ -1,9 +1,8 @@
 import tracer from 'tracer';
 
-const logger = tracer.colorConsole({
+const logger = tracer.console({
 	level: 'info',
-	format: '{{timestamp}} {{file}}:{{line}} {{title}}: {{message}}',
-	dateformat: 'HH:MM:ss.L',
+	format: '{{message}}',
 });
 
 export default logger;

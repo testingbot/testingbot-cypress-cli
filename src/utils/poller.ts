@@ -1,6 +1,6 @@
 import request from 'request';
-import log from './../log';
 import { IConfig } from './config';
+import log from '../log';
 import ora from 'ora';
 
 export interface ITest {
@@ -19,6 +19,7 @@ export interface IRun {
 	capabilities: any
 	errors: string[]
 	test?: ITest
+	success: boolean
 }
 
 interface IPollResponse {
@@ -33,6 +34,7 @@ export default class Poller {
 	private intervalId: NodeJS.Timeout | undefined;
 	private static readonly MAX_RETRIES_WAITING = 60;
 	private static readonly MAX_RETRIES_READY = 600;
+	private initSuccess = false;
 
 	constructor(config: IConfig) {
 		this.config = config;
@@ -75,6 +77,14 @@ export default class Poller {
 						this.intervalId = undefined;
 					}
 					return reject(new Error(`This project has been running for over 20 minutes, stopping now.`));
+				} else if (status === IStatus.READY && !this.initSuccess) {
+					this.initSuccess = true;
+					for (let i = 0; i < response.runs.length; i++) {
+						const testCase = response.runs[i].test;
+						if (testCase) {
+							log.info(`Testcase started, view live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
+						}
+					}
 				}
 
 				this.retryNumber += 1;

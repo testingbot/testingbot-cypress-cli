@@ -1,4 +1,5 @@
 import log from '../log';
+import request from 'request';
 import Archiver from '../utils/archiver';
 import Uploader from '../utils/uploader';
 import Poller, { IRun, ITest } from '../utils/poller';
@@ -7,11 +8,15 @@ import Tunnel from '../utils/tunnel';
 import ora from 'ora';
 import chalk from 'chalk';
 import io from 'socket.io-client';
-import { runInThisContext } from 'vm';
 
 interface Arguments {
 	[x: string]: unknown;
 	cf: string | boolean;
+}
+
+interface ISocketData {
+	id: number
+	payload: string
 }
 
 export default class RunProject {
@@ -21,6 +26,7 @@ export default class RunProject {
 	private tunnel: Tunnel | undefined = undefined;
 	private configFilePath: string | undefined = undefined;
 	private config: IConfig | undefined = undefined;
+	private projectId: number | undefined = undefined;
 
 	constructor(argv: Arguments) {
 		if (typeof(argv.cf) === 'string') {
@@ -29,11 +35,12 @@ export default class RunProject {
 	}
 
 	public exitHandler(): void {
+		this.stopJob();
 		if (this.config && this.config.run_settings.start_tunnel) {
 			if (this.tunnel) {
 				this.tunnel.stop().then(() => {
 					process.exit();
-				}).catch(console.error);
+				}).catch(log.error);
 				this.tunnel = undefined;
 			}
 		} else {
@@ -41,8 +48,39 @@ export default class RunProject {
 		}
 	}
 
-	public errorHandler(): void {
-		console.error(chalk.white.bgRed.bold(`A fatal error occurred, please report this to testingbot.com`));
+	private async stopJob(): Promise<boolean> {
+		if (!this.config) {
+			return false;
+		}
+
+		if (!this.projectId) {
+			return false;
+		}
+
+		return new Promise((resolve, reject) => {
+			const requestOptions = {
+				method: 'POST',
+				uri: `https://api.testingbot.com/v1/cypress/${this.projectId}/stop_project`,
+				auth: {
+					user: this.config ? this.config.auth.key : '',
+					pass: this.config ? this.config.auth.secret : '', 
+					sendImmediately: true,
+				}
+			};
+
+			request(requestOptions, (error) => {
+				if (error) {
+					return reject(error);
+				}
+
+				resolve(true);
+			});
+		});
+	}
+
+	public errorHandler(err: Error): void {
+		log.error(chalk.white.bgRed.bold(`A fatal error occurred, please report this to testingbot.com`));
+		log.error(err);
 		this.exitHandler();
 	}
 
@@ -52,30 +90,30 @@ export default class RunProject {
 		process.on('SIGINT', this.exitHandler.bind(this, {exit:true}));
 		process.on('SIGUSR1', this.exitHandler.bind(this, {exit:true}));
 		process.on('SIGUSR2', this.exitHandler.bind(this, {exit:true}));
-		process.on('uncaughtException', this.errorHandler.bind(this, {exit:true}));
+		process.on('uncaughtException', this.errorHandler.bind(this));
 	}
 
 	private realTimeMessage(message: string): void {
-		console.log(message);
+		const data: ISocketData = JSON.parse(message);
+		log.info(data.payload);
 	}
 
 	private realTimeError(message: string): void {
-		console.error(message);
+		const data: ISocketData = JSON.parse(message);
+		log.error(data.payload);
 	}
 
-	private parseErrors(runs: IRun[]): string[] {
-		let errors: string[] = []
+	private parseSuccess(runs: IRun[]): boolean {
+		let success = true;
 		for (let i = 0; i < runs.length; i++) {
-			if (runs[i].errors.length > 0) {
-				errors = errors.concat(runs[i].errors);
-			}
+			success = success && runs[i].success;
 		}
 
-		return errors;
+		return success;
 	}
 
 	private parseTestCases(runs: IRun[]): ITest[] {
-		let testCases: ITest[] = []
+		const testCases: ITest[] = []
 		for (let i = 0; i < runs.length; i++) {
 			const testCase = runs[i].test;
 			if (testCase) {
@@ -91,14 +129,14 @@ export default class RunProject {
 		try {
 			config = await Config.getConfig(this.configFilePath || `testingbot.json`);
 		} catch (e) {
-			console.error(chalk.white.bgRed.bold(`Configuration file problem: ${e.message} for Config File: ${this.configFilePath || `testingbot.json`}`));
+			log.error(chalk.white.bgRed.bold(`Configuration file problem: ${e.message} for Config File: ${this.configFilePath || `testingbot.json`}`));
 			return;
 		}
 		
 		const configValidationErrors = Config.validate(config);
 
 		if (configValidationErrors.length > 0) {
-			console.error(chalk.white.bgRed.bold(`Configuration errors: ${configValidationErrors.join('\n')}`));
+			log.error(chalk.white.bgRed.bold(`Configuration errors: ${configValidationErrors.join('\n')}`));
 			return;
 		}
 
@@ -112,7 +150,7 @@ export default class RunProject {
 		let zipFile: string;
 
 		if (!this.archiver || !this.uploader) {
-			console.error(chalk.white.bgRed.bold(`Invalid state, please try again`));
+			log.error(chalk.white.bgRed.bold(`Invalid state, please try again`));
 			return;
 		}
 
@@ -122,11 +160,11 @@ export default class RunProject {
 			tunnelSpinner.succeed('TestingBot Tunnel Ready');
 		}
 
-		const uploadSpinner = ora('Starting Project on TestingBot').start();
+		const uploadSpinner = ora('Starting Cypress Project on TestingBot').start();
 		try {
 			zipFile = await this.archiver.start();
 		} catch (err) {
-			console.error(err);
+			log.error(err);
 			return;
 		}
 
@@ -134,19 +172,19 @@ export default class RunProject {
 
 		try {
 			const response = await this.uploader.start(zipFile);
-			uploadSpinner.succeed('Cypress is now running on TestingBot')
-			const realTime = io.connect('https://hub.testingbot.com:3031');
-			realTime.emit('join', `cypress_${response.id}`)
-			realTime.on('cypress_data', (msg: string) => this.realTimeMessage.bind(this, msg));
-			realTime.on('cypress_error', (msg: string) => this.realTimeError.bind(this, msg));
+			this.projectId = response.id;
+			uploadSpinner.succeed('Cypress Project is now running on TestingBot');
+
+			if (config.run_settings.realTimeLogs) {
+				const realTime = io.connect('https://hub.testingbot.com:3031');
+				realTime.emit('join', `cypress_${response.id}`)
+				realTime.on('cypress_data', this.realTimeMessage.bind(this));
+				realTime.on('cypress_error', this.realTimeError.bind(this));
+			}
 
 			const poller = await this.poller.check(response.id, uploadSpinner);
 			const testCases = this.parseTestCases(poller.runs);
-			const errors = this.parseErrors(poller.runs);
-			
-			if (errors.length > 0) {
-				console.error(chalk.white.bgRed.bold(`Errors occurred:` + errors.join(`\n`)));
-			}
+			const success = this.parseSuccess(poller.runs);
 
 			if (process.env.TESTINGBOT_CI && testCases.length > 0) {
 				for (let i = 0; i < testCases.length; i++) {
@@ -155,10 +193,10 @@ export default class RunProject {
 				}
 			}
 
-			process.exit(errors.length === 0 ? 0 : 1);
+			process.exit(success === true ? 0 : 1);
 
 		} catch (err) {
-			console.error(chalk.white.bgRed.bold(err));
+			log.error(chalk.white.bgRed.bold(err));
 			if (config.run_settings.start_tunnel) {
 				await this.tunnel.stop();
 			}

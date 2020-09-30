@@ -56,17 +56,23 @@ export default class Archiver {
 					'png',
 					'zip' 
 				];
+
+				let ignoredPaths = [
+					'**/node_modules/**',
+					'./node_modules/**',
+					'package-lock.json',
+					'package.json',
+					'testingbot-package.json',
+				];
+
+				if (this.config.run_settings.exclude && this.config.run_settings.exclude.length > 0) {
+					ignoredPaths = ignoredPaths.concat(this.config.run_settings.exclude)
+				}
 				allowedFileTypes.forEach((fileType) => {
 					archive.glob(`**/*.${fileType}`, {
 						cwd: this.config.run_settings.cypress_project_dir,
 						matchBase: true,
-						ignore: [
-							'**/node_modules/**',
-							'./node_modules/**',
-							'package-lock.json',
-							'package.json',
-							'testingbot-package.json',
-						],
+						ignore: ignoredPaths,
 					});
 				});
 

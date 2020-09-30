@@ -18,7 +18,8 @@ export default (): string => {
 			npm_dependencies: {},
 			package_config_options: {},
 			start_tunnel: true,
-			local_ports: []
+			local_ports: [],
+			realTimeLogs: true
 		},
 		tunnel_settings: {
 			verbose: false

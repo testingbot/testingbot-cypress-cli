@@ -21,6 +21,9 @@ You can easily install the CLI via `npm` or `yarn`:
 $ npm install -g testinbot-cypress-cli
 ```
 
+To use the CLI in combination with [TestingBot Tunnel](https://testingbot.com/support/other/tunnel), you will need to have JDK8 (or higher) installed.
+TestingBot Tunnel is used to connect TestingBot's browser grid with your local computer or network.
+
 ### Configure
 
 Once the CLI is installed, you'll need to point it to a configuration file.
@@ -49,6 +52,14 @@ $ testingbot-cypress run
 Once you've started this command, the tests will start to appear in the [TestingBot Dashboard](https://testingbot.com/members).
 
 ## Documentation
+
+### Environment variables
+
+If you prefer to keep your TestingBot credentials in environment variables, you can use `TESTINGBOT_KEY` and `TESTINGBOT_SECRET` environment variables.
+
+If you are running this CLI in a CI/CD like Jenkins or TeamCity, you can set the
+environment variable `TESTINGBOT_CI=1`. The CLI will output the `TestingBotSessionID`, in combination
+with a TestingBot CI plugin you will be able to view the test's details from inside your CI.
 
 ## Getting Help
 
