@@ -3,8 +3,15 @@ import { IConfig } from './config';
 import log from '../log';
 import ora from 'ora';
 
+interface IEnvironment {
+	name: string
+	os: string
+	version: string	
+}
+
 export interface ITest {
 	sessionId: string
+	environment: IEnvironment
 }
 
 enum IStatus {
@@ -33,7 +40,7 @@ export default class Poller {
 	private retryNumber = 0;
 	private intervalId: NodeJS.Timeout | undefined;
 	private static readonly MAX_RETRIES_WAITING = 60;
-	private static readonly MAX_RETRIES_READY = 600;
+	private static readonly MAX_RETRIES_READY = 900;
 	private initSuccess = false;
 
 	constructor(config: IConfig) {
@@ -76,13 +83,16 @@ export default class Poller {
 						clearInterval(this.intervalId);
 						this.intervalId = undefined;
 					}
-					return reject(new Error(`This project has been running for over 20 minutes, stopping now.`));
+					return reject(new Error(`This project has been running for over 30 minutes, stopping now.`));
 				} else if (status === IStatus.READY && !this.initSuccess) {
 					this.initSuccess = true;
 					for (let i = 0; i < response.runs.length; i++) {
 						const testCase = response.runs[i].test;
 						if (testCase) {
-							log.info(`Testcase started, view live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
+							log.info(`Testcase started on:
+							Browser: ${testCase.environment.name}
+							OS: ${testCase.environment.os}
+							View live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
 						}
 					}
 				}
