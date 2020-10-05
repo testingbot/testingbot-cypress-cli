@@ -90,9 +90,9 @@ export default class Poller {
 						const testCase = response.runs[i].test;
 						if (testCase) {
 							log.info(`Testcase started on:
-							Browser: ${testCase.environment.name}
-							OS: ${testCase.environment.os}
-							View live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
+Browser: ${testCase.environment.name}
+OS: ${testCase.environment.os}
+View live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
 						}
 					}
 				}
