@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as yargs from 'yargs';
 import InitProject from './commands/init';
 import RunProject from './commands/run';
@@ -40,6 +42,7 @@ yargs
 			.help('help')
 			.wrap(null).argv;
 			const runProject = new RunProject(initArgv);
+			
 			runProject.start();
 	})
 	.alias('h', 'help')
