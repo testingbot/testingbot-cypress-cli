@@ -47,4 +47,6 @@ yargs
 	})
 	.alias('h', 'help')
 	.help('help')
+	.demandCommand(1, '')
+	.showHelpOnFail(true)
 	.wrap(null).argv;
