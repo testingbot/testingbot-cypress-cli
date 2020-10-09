@@ -33,10 +33,10 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "archiver": "^5.0.0",
+    "archiver": "^5.0.2",
     "chalk": "^4.1.0",
     "ora": "^5.0.0",
-    "publish-please": "^5.5.1",
+    "publish-please": "^5.5.2",
     "request": "^2.88.2",
     "socket.io-client": "^2.3.0",
     "testingbot-tunnel-launcher": "^1.1.7",
