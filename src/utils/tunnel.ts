@@ -1,4 +1,4 @@
-import { IConfig } from "./config";
+import { IConfig } from './config';
 const testingbotTunnel = require('testingbot-tunnel-launcher');
 
 export default class Tunnel {
@@ -9,13 +9,16 @@ export default class Tunnel {
 	constructor(config: IConfig) {
 		this.config = config;
 	}
-	
+
 	public async start(): Promise<void> {
 		return new Promise((resolve, reject) => {
-			const tunnelOpts = Object.assign({
-				apiKey: this.config.auth.key,
-				apiSecret: this.config.auth.secret,
-			}, this.config.tunnel_settings);
+			const tunnelOpts = Object.assign(
+				{
+					apiKey: this.config.auth.key,
+					apiSecret: this.config.auth.secret,
+				},
+				this.config.tunnel_settings,
+			);
 
 			testingbotTunnel(tunnelOpts, (err: any, tunnel: any) => {
 				if (err) {

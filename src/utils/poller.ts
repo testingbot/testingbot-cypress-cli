@@ -4,35 +4,35 @@ import log from '../log';
 import ora from 'ora';
 
 interface IEnvironment {
-	name: string
-	os: string
-	version: string	
+	name: string;
+	os: string;
+	version: string;
 }
 
 export interface ITest {
-	sessionId: string
-	environment: IEnvironment
+	sessionId: string;
+	environment: IEnvironment;
 }
 
 enum IStatus {
 	WAITING = 'WAITING',
 	READY = 'READY',
 	FAILED = 'FAILED',
-	DONE = 'DONE'
+	DONE = 'DONE',
 }
 
 export interface IRun {
-	status: IStatus
-	capabilities: any
-	errors: string[]
-	test?: ITest
-	success: boolean
+	status: IStatus;
+	capabilities: any;
+	errors: string[];
+	test?: ITest;
+	success: boolean;
 }
 
 interface IPollResponse {
-	runs: IRun[]
-	version: string
-	build?: string
+	runs: IRun[];
+	version: string;
+	build?: string;
 }
 
 export default class Poller {
@@ -72,18 +72,32 @@ export default class Poller {
 					return reject(errors);
 				}
 
-				if (status === IStatus.WAITING && this.retryNumber > Poller.MAX_RETRIES_WAITING) {
+				if (
+					status === IStatus.WAITING &&
+					this.retryNumber > Poller.MAX_RETRIES_WAITING
+				) {
 					if (this.intervalId) {
 						clearInterval(this.intervalId);
 						this.intervalId = undefined;
 					}
-					return reject(new Error(`Waited too long to retrieve information, please try again later.`));
-				} else if (status === IStatus.READY && this.retryNumber > Poller.MAX_RETRIES_READY) {
+					return reject(
+						new Error(
+							`Waited too long to retrieve information, please try again later.`,
+						),
+					);
+				} else if (
+					status === IStatus.READY &&
+					this.retryNumber > Poller.MAX_RETRIES_READY
+				) {
 					if (this.intervalId) {
 						clearInterval(this.intervalId);
 						this.intervalId = undefined;
 					}
-					return reject(new Error(`This project has been running for over 30 minutes, stopping now.`));
+					return reject(
+						new Error(
+							`This project has been running for over 30 minutes, stopping now.`,
+						),
+					);
 				} else if (status === IStatus.READY && !this.initSuccess) {
 					this.initSuccess = true;
 					for (let i = 0; i < response.runs.length; i++) {
@@ -103,7 +117,7 @@ View live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
 	}
 
 	private getErrors(response: IPollResponse): string[] {
-		const errors: string[] = []
+		const errors: string[] = [];
 		for (let i = 0; i < response.runs.length; i++) {
 			const testRun = response.runs[i];
 			if (testRun.errors.length > 0) {
@@ -115,7 +129,7 @@ View live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
 	}
 
 	private getStatus(response: IPollResponse): IStatus {
-		let status = IStatus.DONE
+		let status = IStatus.DONE;
 
 		for (let i = 0; i < response.runs.length; i++) {
 			const testRun = response.runs[i];
@@ -140,7 +154,7 @@ View live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
 					user: this.config.auth.key,
 					pass: this.config.auth.secret,
 					sendImmediately: true,
-				}
+				},
 			};
 
 			request(requestOptions, (error, response) => {

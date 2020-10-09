@@ -15,8 +15,8 @@ interface Arguments {
 }
 
 interface ISocketData {
-	id: number
-	payload: string
+	id: number;
+	payload: string;
 }
 
 export default class RunProject {
@@ -29,7 +29,7 @@ export default class RunProject {
 	private projectId: number | undefined = undefined;
 
 	constructor(argv: Arguments) {
-		if (typeof(argv.cf) === 'string') {
+		if (typeof argv.cf === 'string') {
 			this.configFilePath = argv.cf;
 		}
 	}
@@ -38,13 +38,16 @@ export default class RunProject {
 		this.stopJob();
 		if (this.config && this.config.run_settings.start_tunnel) {
 			if (this.tunnel) {
-				this.tunnel.stop().then(() => {
-					process.exit();
-				}).catch(log.error);
+				this.tunnel
+					.stop()
+					.then(() => {
+						process.exit();
+					})
+					.catch(log.error);
 				this.tunnel = undefined;
 			}
 		} else {
-			process.exit()
+			process.exit();
 		}
 	}
 
@@ -63,9 +66,9 @@ export default class RunProject {
 				uri: `https://api.testingbot.com/v1/cypress/${this.projectId}/stop_project`,
 				auth: {
 					user: this.config ? this.config.auth.key : '',
-					pass: this.config ? this.config.auth.secret : '', 
+					pass: this.config ? this.config.auth.secret : '',
 					sendImmediately: true,
-				}
+				},
 			};
 
 			request(requestOptions, (error) => {
@@ -79,17 +82,21 @@ export default class RunProject {
 	}
 
 	public errorHandler(err: Error): void {
-		log.error(chalk.white.bgRed.bold(`A fatal error occurred, please report this to testingbot.com`));
+		log.error(
+			chalk.white.bgRed.bold(
+				`A fatal error occurred, please report this to testingbot.com`,
+			),
+		);
 		log.error(err);
 		this.exitHandler();
 	}
 
 	private registerCloseHandlers(): void {
 		//do something when app is closing
-		process.on('exit', this.exitHandler.bind(this,{cleanup:true}));
-		process.on('SIGINT', this.exitHandler.bind(this, {exit:true}));
-		process.on('SIGUSR1', this.exitHandler.bind(this, {exit:true}));
-		process.on('SIGUSR2', this.exitHandler.bind(this, {exit:true}));
+		process.on('exit', this.exitHandler.bind(this, { cleanup: true }));
+		process.on('SIGINT', this.exitHandler.bind(this, { exit: true }));
+		process.on('SIGUSR1', this.exitHandler.bind(this, { exit: true }));
+		process.on('SIGUSR2', this.exitHandler.bind(this, { exit: true }));
 		process.on('uncaughtException', this.errorHandler.bind(this));
 	}
 
@@ -113,11 +120,11 @@ export default class RunProject {
 	}
 
 	private parseTestCases(runs: IRun[]): ITest[] {
-		const testCases: ITest[] = []
+		const testCases: ITest[] = [];
 		for (let i = 0; i < runs.length; i++) {
 			const testCase = runs[i].test;
 			if (testCase) {
-				testCases.push(testCase)
+				testCases.push(testCase);
 			}
 		}
 
@@ -129,14 +136,24 @@ export default class RunProject {
 		try {
 			config = await Config.getConfig(this.configFilePath || `testingbot.json`);
 		} catch (e) {
-			log.error(chalk.white.bgRed.bold(`Configuration file problem: ${e.message} for Config File: ${this.configFilePath || `testingbot.json`}`));
+			log.error(
+				chalk.white.bgRed.bold(
+					`Configuration file problem: ${e.message} for Config File: ${
+						this.configFilePath || `testingbot.json`
+					}`,
+				),
+			);
 			return;
 		}
-		
+
 		const configValidationErrors = Config.validate(config);
 
 		if (configValidationErrors.length > 0) {
-			log.error(chalk.white.bgRed.bold(`Configuration errors: ${configValidationErrors.join('\n')}`));
+			log.error(
+				chalk.white.bgRed.bold(
+					`Configuration errors: ${configValidationErrors.join('\n')}`,
+				),
+			);
 			return;
 		}
 
@@ -177,7 +194,7 @@ export default class RunProject {
 
 			if (config.run_settings.realTimeLogs) {
 				const realTime = io.connect('https://hub.testingbot.com:3031');
-				realTime.emit('join', `cypress_${response.id}`)
+				realTime.emit('join', `cypress_${response.id}`);
 				realTime.on('cypress_data', this.realTimeMessage.bind(this));
 				realTime.on('cypress_error', this.realTimeError.bind(this));
 			}
@@ -194,7 +211,6 @@ export default class RunProject {
 			}
 
 			process.exit(success === true ? 0 : 1);
-
 		} catch (err) {
 			log.error(chalk.white.bgRed.bold(err));
 			if (config.run_settings.start_tunnel) {

@@ -3,7 +3,7 @@ import request from 'request';
 import { IConfig, ICapability } from './config';
 
 interface IResponse {
-	id: number
+	id: number;
 }
 
 export default class Uploader {
@@ -19,13 +19,17 @@ export default class Uploader {
 			if (this.config.run_settings.local_ports.length > 0) {
 				capabilities.map((capability: ICapability) => {
 					capability.localHttpPorts = this.config.run_settings.local_ports;
-				})
+				});
 			}
 
-			if (this.config.run_settings.build_name && this.config.run_settings.build_name.length > 0 && this.config.run_settings.build_name !== 'build-name') {
+			if (
+				this.config.run_settings.build_name &&
+				this.config.run_settings.build_name.length > 0 &&
+				this.config.run_settings.build_name !== 'build-name'
+			) {
 				capabilities.map((capability: ICapability) => {
 					capability.build = this.config.run_settings.build_name;
-				})
+				});
 			}
 			const requestOptions = {
 				method: 'POST',
@@ -37,7 +41,7 @@ export default class Uploader {
 				},
 				formData: {
 					file: fs.createReadStream(zipFile),
-					capabilities: JSON.stringify(capabilities)
+					capabilities: JSON.stringify(capabilities),
 				},
 			};
 

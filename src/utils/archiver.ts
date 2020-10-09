@@ -54,7 +54,7 @@ export default class Archiver {
 					'jpg',
 					'jpeg',
 					'png',
-					'zip' 
+					'zip',
 				];
 
 				let ignoredPaths = [
@@ -65,8 +65,11 @@ export default class Archiver {
 					'testingbot-package.json',
 				];
 
-				if (this.config.run_settings.exclude && this.config.run_settings.exclude.length > 0) {
-					ignoredPaths = ignoredPaths.concat(this.config.run_settings.exclude)
+				if (
+					this.config.run_settings.exclude &&
+					this.config.run_settings.exclude.length > 0
+				) {
+					ignoredPaths = ignoredPaths.concat(this.config.run_settings.exclude);
 				}
 				allowedFileTypes.forEach((fileType) => {
 					archive.glob(`**/*.${fileType}`, {
@@ -78,17 +81,26 @@ export default class Archiver {
 
 				const packageJSON = {};
 
-				if (typeof this.config.run_settings.package_config_options === 'object') {
-					Object.assign(packageJSON, this.config.run_settings.package_config_options);
+				if (
+					typeof this.config.run_settings.package_config_options === 'object'
+				) {
+					Object.assign(
+						packageJSON,
+						this.config.run_settings.package_config_options,
+					);
 				}
 
 				if (typeof this.config.run_settings.npm_dependencies === 'object') {
-					Object.assign(packageJSON, {devDependencies: this.config.run_settings.npm_dependencies});
+					Object.assign(packageJSON, {
+						devDependencies: this.config.run_settings.npm_dependencies,
+					});
 				}
 
 				if (Object.keys(packageJSON).length > 0) {
 					const packageJSONString = JSON.stringify(packageJSON, null, 4);
-					archive.append(packageJSONString, { name: 'testingbot-package.json' });
+					archive.append(packageJSONString, {
+						name: 'testingbot-package.json',
+					});
 				}
 
 				archive.finalize();

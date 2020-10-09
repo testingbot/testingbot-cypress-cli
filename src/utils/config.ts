@@ -16,14 +16,14 @@ export interface ICapability {
 }
 
 interface IRunSettings {
-	cypress_project_dir: string
-	build_name: string
-	npm_dependencies: any
-	package_config_options: any
-	start_tunnel: boolean
-	local_ports: number[]
-	exclude: string[]
-	realTimeLogs: boolean
+	cypress_project_dir: string;
+	build_name: string;
+	npm_dependencies: any;
+	package_config_options: any;
+	start_tunnel: boolean;
+	local_ports: number[];
+	exclude: string[];
+	realTimeLogs: boolean;
 }
 
 export interface IConfig {
@@ -38,17 +38,23 @@ export default {
 		const configString = await fsPromises.readFile(configFilePath);
 		const configObject: IConfig = JSON.parse(configString.toString());
 
-		if (configObject.auth.key === '' || configObject.auth.key === '<Your TestingBot key>') {
+		if (
+			configObject.auth.key === '' ||
+			configObject.auth.key === '<Your TestingBot key>'
+		) {
 			if (process.env.TESTINGBOT_KEY) {
 				configObject.auth.key = process.env.TESTINGBOT_KEY;
 			}
 		}
-		if (configObject.auth.secret === '' || configObject.auth.secret === '<Your TestingBot secret>') {
+		if (
+			configObject.auth.secret === '' ||
+			configObject.auth.secret === '<Your TestingBot secret>'
+		) {
 			if (process.env.TESTINGBOT_SECRET) {
 				configObject.auth.secret = process.env.TESTINGBOT_SECRET;
 			}
 		}
-		
+
 		return configObject;
 	},
 

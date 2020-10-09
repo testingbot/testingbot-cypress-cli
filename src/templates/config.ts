@@ -8,7 +8,7 @@ export default (): string => {
 			{
 				browserName: 'chrome',
 				platform: 'MOJAVE',
-				version: 83
+				version: 83,
 			},
 		],
 		run_settings: {
@@ -19,11 +19,11 @@ export default (): string => {
 			package_config_options: {},
 			start_tunnel: true,
 			local_ports: [],
-			realTimeLogs: true
+			realTimeLogs: true,
 		},
 		tunnel_settings: {
-			verbose: false
-		}
+			verbose: false,
+		},
 	};
 
 	return JSON.stringify(config, null, 4);
