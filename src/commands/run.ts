@@ -91,6 +91,15 @@ export default class RunProject {
 		this.exitHandler();
 	}
 
+	public onReady(): void {
+		if (this.config && this.config.run_settings.realTimeLogs) {
+			const realTime = io.connect('https://hub.testingbot.com:3031');
+			realTime.emit('join', `cypress_${this.projectId}`);
+			realTime.on('cypress_data', this.realTimeMessage.bind(this));
+			realTime.on('cypress_error', this.realTimeError.bind(this));
+		}
+	}
+
 	private registerCloseHandlers(): void {
 		//do something when app is closing
 		process.on('exit', this.exitHandler.bind(this, { cleanup: true }));
@@ -161,7 +170,7 @@ export default class RunProject {
 
 		this.archiver = new Archiver(config);
 		this.uploader = new Uploader(config);
-		this.poller = new Poller(config);
+		this.poller = new Poller(config, this);
 		this.tunnel = new Tunnel(config);
 
 		let zipFile: string;
@@ -191,13 +200,6 @@ export default class RunProject {
 			const response = await this.uploader.start(zipFile);
 			this.projectId = response.id;
 			uploadSpinner.succeed('Cypress Project is now running on TestingBot');
-
-			if (config.run_settings.realTimeLogs) {
-				const realTime = io.connect('https://hub.testingbot.com:3031');
-				realTime.emit('join', `cypress_${response.id}`);
-				realTime.on('cypress_data', this.realTimeMessage.bind(this));
-				realTime.on('cypress_error', this.realTimeError.bind(this));
-			}
 
 			const poller = await this.poller.check(response.id, uploadSpinner);
 			const testCases = this.parseTestCases(poller.runs);

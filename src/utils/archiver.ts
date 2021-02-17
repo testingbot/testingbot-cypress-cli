@@ -14,10 +14,8 @@ export default class Archiver {
 
 	public async start(): Promise<string> {
 		return new Promise((resolve, reject) => {
-			let tempZipFile: string | undefined;
-
 			try {
-				tempZipFile = path.join(os.tmpdir(), 'upload.zip');
+				const tempZipFile = path.join(os.tmpdir(), 'upload.zip');
 				const output = fs.createWriteStream(tempZipFile);
 				const archive = archiver('zip', {
 					zlib: { level: 9 },

@@ -2,6 +2,7 @@ import request from 'request';
 import { IConfig } from './config';
 import log from '../log';
 import ora from 'ora';
+import RunProject from '../commands/run';
 
 interface IEnvironment {
 	name: string;
@@ -42,9 +43,11 @@ export default class Poller {
 	private static readonly MAX_RETRIES_WAITING = 60;
 	private static readonly MAX_RETRIES_READY = 900;
 	private initSuccess = false;
+	private runner: RunProject;
 
-	constructor(config: IConfig) {
+	constructor(config: IConfig, runner: RunProject) {
 		this.config = config;
+		this.runner = runner;
 	}
 
 	public async check(id: number, spinner: ora.Ora): Promise<IPollResponse> {
@@ -109,6 +112,8 @@ OS: ${testCase.environment.os}
 View live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
 						}
 					}
+
+					this.runner.onReady()
 				}
 
 				this.retryNumber += 1;
