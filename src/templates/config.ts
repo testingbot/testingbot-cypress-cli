@@ -7,8 +7,8 @@ export default (): string => {
 		browsers: [
 			{
 				browserName: 'chrome',
-				platform: 'MOJAVE',
-				version: 83,
+				platform: 'WIN10',
+				version: 'latest',
 			},
 		],
 		run_settings: {
