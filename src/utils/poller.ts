@@ -113,7 +113,7 @@ View live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
 						}
 					}
 
-					this.runner.onReady()
+					this.runner.onReady();
 				}
 
 				this.retryNumber += 1;

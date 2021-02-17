@@ -20,6 +20,8 @@ export default (): string => {
 			start_tunnel: true,
 			local_ports: [],
 			realTimeLogs: true,
+			headless: false,
+			parallel: 1,
 		},
 		tunnel_settings: {
 			verbose: false,

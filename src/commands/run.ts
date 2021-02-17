@@ -12,6 +12,11 @@ import io from 'socket.io-client';
 interface Arguments {
 	[x: string]: unknown;
 	cf: string | boolean;
+	group?: string;
+	headless?: boolean;
+	parallel?: number;
+	e?: string;
+	s?: string;
 }
 
 interface ISocketData {
@@ -27,11 +32,13 @@ export default class RunProject {
 	private configFilePath: string | undefined = undefined;
 	private config: IConfig | undefined = undefined;
 	private projectId: number | undefined = undefined;
+	private argv: Arguments;
 
 	constructor(argv: Arguments) {
 		if (typeof argv.cf === 'string') {
 			this.configFilePath = argv.cf;
 		}
+		this.argv = argv;
 	}
 
 	public exitHandler(): void {
@@ -140,6 +147,26 @@ export default class RunProject {
 		return testCases;
 	}
 
+	private applyArgsToConfig(): void {
+		if (this.config) {
+			if (this.argv.group) {
+				this.config.run_settings.build_name = this.argv.group;
+			}
+			if (this.argv.headless) {
+				this.config.run_settings.headless = this.argv.headless;
+			}
+			if (this.argv.parallel) {
+				this.config.run_settings.parallel = this.argv.parallel;
+			}
+			if (this.argv.e) {
+				this.config.run_settings.cypressEnv = this.argv.e.split(',');
+			}
+			if (this.argv.s) {
+				this.config.run_settings.cypressSpecs = this.argv.s;
+			}
+		}
+	}
+
 	public async start(): Promise<void> {
 		let config: IConfig;
 		try {
@@ -168,10 +195,12 @@ export default class RunProject {
 
 		this.config = config;
 
-		this.archiver = new Archiver(config);
-		this.uploader = new Uploader(config);
-		this.poller = new Poller(config, this);
-		this.tunnel = new Tunnel(config);
+		this.applyArgsToConfig();
+
+		this.archiver = new Archiver(this.config);
+		this.uploader = new Uploader(this.config);
+		this.poller = new Poller(this.config, this);
+		this.tunnel = new Tunnel(this.config);
 
 		let zipFile: string;
 
@@ -180,7 +209,7 @@ export default class RunProject {
 			return;
 		}
 
-		if (config.run_settings.start_tunnel) {
+		if (this.config.run_settings.start_tunnel) {
 			const tunnelSpinner = ora('Starting TestingBot Tunnel').start();
 			await this.tunnel.start();
 			tunnelSpinner.succeed('TestingBot Tunnel Ready');

@@ -38,6 +38,35 @@ yargs
 					type: 'string',
 					demand: true,
 				},
+				group: {
+					default: undefined,
+					description: 'Group the specs under this name',
+					type: 'string',
+					nargs: 1,
+				},
+				headless: {
+					default: false,
+					description: 'Run tests in headless mode on TestingBot (no UI)',
+					type: 'boolean',
+				},
+				parallel: {
+					default: 1,
+					description: 'Run tests in parallel on TestingBot',
+					type: 'number',
+				},
+				s: {
+					alias: ['specs', 'spec'],
+					default: undefined,
+					description: 'Runs specific spec file(s). defaults to "all"',
+					type: 'string',
+				},
+				e: {
+					alias: 'env',
+					describe:
+						'Sets environment variables. separate multiple values with a comma',
+					type: 'string',
+					default: undefined,
+				},
 			})
 			.help('help')
 			.wrap(null).argv;

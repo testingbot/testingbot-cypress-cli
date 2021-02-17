@@ -1,5 +1,6 @@
 import fs from 'fs';
 import request from 'request';
+import os from 'os';
 import { IConfig, ICapability } from './config';
 
 interface IResponse {
@@ -31,6 +32,33 @@ export default class Uploader {
 					capability.build = this.config.run_settings.build_name;
 				});
 			}
+
+			if (this.config.run_settings.headless) {
+				capabilities.map((capability: ICapability) => {
+					capability.headless = this.config.run_settings.headless;
+				});
+			}
+
+			if (this.config.run_settings.cypressEnv) {
+				capabilities.map((capability: ICapability) => {
+					capability.cypressEnv = this.config.run_settings.cypressEnv;
+				});
+			}
+
+			if (this.config.run_settings.cypressVersion) {
+				capabilities.map((capability: ICapability) => {
+					capability.cypressVersion = this.config.run_settings.cypressVersion;
+				});
+			}
+
+			const runSettings = {
+				parallel: 1,
+			};
+
+			if (this.config.run_settings.parallel) {
+				runSettings.parallel = this.config.run_settings.parallel;
+			}
+
 			const requestOptions = {
 				method: 'POST',
 				uri: `https://api.testingbot.com/v1/cypress`,
@@ -42,6 +70,10 @@ export default class Uploader {
 				formData: {
 					file: fs.createReadStream(zipFile),
 					capabilities: JSON.stringify(capabilities),
+					settings: JSON.stringify(runSettings),
+				},
+				headers: {
+					'User-Agent': `TB-Cypress-CLI (${os.arch()}/${os.platform()}/${os.release()})`,
 				},
 			};
 

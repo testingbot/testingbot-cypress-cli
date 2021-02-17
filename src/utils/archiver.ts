@@ -69,13 +69,22 @@ export default class Archiver {
 				) {
 					ignoredPaths = ignoredPaths.concat(this.config.run_settings.exclude);
 				}
-				allowedFileTypes.forEach((fileType) => {
-					archive.glob(`**/*.${fileType}`, {
+
+				if (!this.config.run_settings.cypressSpecs) {
+					allowedFileTypes.forEach((fileType) => {
+						archive.glob(`**/*.${fileType}`, {
+							cwd: this.config.run_settings.cypress_project_dir,
+							matchBase: true,
+							ignore: ignoredPaths,
+						});
+					});
+				} else {
+					archive.glob(this.config.run_settings.cypressSpecs, {
 						cwd: this.config.run_settings.cypress_project_dir,
 						matchBase: true,
 						ignore: ignoredPaths,
 					});
-				});
+				}
 
 				const packageJSON = {};
 

@@ -13,6 +13,9 @@ export interface ICapability {
 	version: string | number;
 	localHttpPorts?: number[];
 	build?: string;
+	headless?: boolean;
+	cypressEnv?: string[];
+	cypressVersion?: string;
 }
 
 interface IRunSettings {
@@ -24,6 +27,11 @@ interface IRunSettings {
 	local_ports: number[];
 	exclude: string[];
 	realTimeLogs: boolean;
+	parallel: number;
+	headless: boolean;
+	cypressEnv: string[];
+	cypressSpecs: string;
+	cypressVersion: string;
 }
 
 export interface IConfig {
