@@ -11,6 +11,7 @@ export interface ICapability {
 	browserName: string;
 	platform: string;
 	version: string | number;
+	screenResolution?: string;
 	localHttpPorts?: number[];
 	build?: string;
 	headless?: boolean;

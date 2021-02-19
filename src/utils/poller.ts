@@ -34,6 +34,7 @@ interface IPollResponse {
 	runs: IRun[];
 	version: string;
 	build?: string;
+	build_id?: number;
 }
 
 export default class Poller {
@@ -57,16 +58,19 @@ export default class Poller {
 				const status = this.getStatus(response);
 
 				if (status === IStatus.DONE) {
-					spinner.succeed('Cypress Project has finished running on TestingBot');
-
 					const errors = this.getErrors(response);
 					if (errors.length === 0) {
+						spinner.succeed(
+							'Cypress Project has finished running on TestingBot',
+						);
 						if (this.intervalId) {
 							clearInterval(this.intervalId);
 							this.intervalId = undefined;
 						}
 						return resolve(response);
 					}
+
+					spinner.fail('Cypress Project has finished running on TestingBot');
 
 					if (this.intervalId) {
 						clearInterval(this.intervalId);
@@ -103,14 +107,9 @@ export default class Poller {
 					);
 				} else if (status === IStatus.READY && !this.initSuccess) {
 					this.initSuccess = true;
-					for (let i = 0; i < response.runs.length; i++) {
-						const testCase = response.runs[i].test;
-						if (testCase) {
-							log.info(`Testcase started on:
-Browser: ${testCase.environment.name}
-OS: ${testCase.environment.os}
-View live stream https://testingbot.com/members/tests/${testCase.sessionId}`);
-						}
+					if (response.build_id) {
+						log.info(`Cypress Job started.
+View results on https://testingbot.com/members/builds/${response.build_id}`);
 					}
 
 					this.runner.onReady();
