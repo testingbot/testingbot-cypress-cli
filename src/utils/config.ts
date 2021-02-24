@@ -16,6 +16,7 @@ export interface ICapability {
 	build?: string;
 	headless?: boolean;
 	cypressEnv?: string[];
+	cypressSpecs?: string[];
 	cypressVersion?: string;
 }
 

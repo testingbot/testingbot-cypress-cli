@@ -45,6 +45,12 @@ export default class Uploader {
 				});
 			}
 
+			if (this.config.run_settings.cypressSpecs) {
+				capabilities.map((capability: ICapability) => {
+					capability.cypressSpecs = this.config.run_settings.cypressSpecs.split(',');
+				});
+			}
+
 			if (this.config.run_settings.cypressVersion) {
 				capabilities.map((capability: ICapability) => {
 					capability.cypressVersion = this.config.run_settings.cypressVersion;
