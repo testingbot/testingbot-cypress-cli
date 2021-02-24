@@ -206,12 +206,18 @@ export default class RunProject {
 
 		if (!this.archiver || !this.uploader) {
 			log.error(chalk.white.bgRed.bold(`Invalid state, please try again`));
-			return;
+			process.exit(1);
 		}
 
 		if (this.config.run_settings.start_tunnel) {
 			const tunnelSpinner = ora('Starting TestingBot Tunnel').start();
-			await this.tunnel.start();
+			try {
+				await this.tunnel.start();
+				tunnelSpinner.clear();
+			} catch (err) {
+				log.error(chalk.white.bgRed.bold(err.message));
+				process.exit(1);
+			}
 			tunnelSpinner.succeed('TestingBot Tunnel Ready');
 		}
 
@@ -219,8 +225,8 @@ export default class RunProject {
 		try {
 			zipFile = await this.archiver.start();
 		} catch (err) {
-			log.error(err);
-			return;
+			log.error(chalk.white.bgRed.bold(err));
+			process.exit(1);
 		}
 
 		this.registerCloseHandlers();
