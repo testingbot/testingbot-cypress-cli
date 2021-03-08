@@ -35,6 +35,7 @@ interface IPollResponse {
 	version: string;
 	build?: string;
 	build_id?: number;
+	success: boolean;
 }
 
 export default class Poller {
@@ -58,25 +59,20 @@ export default class Poller {
 				const status = this.getStatus(response);
 
 				if (status === IStatus.DONE) {
-					const errors = this.getErrors(response);
-					if (errors.length === 0) {
+					response.success = this.isSuccess(response);
+					if (response.success) {
 						spinner.succeed(
 							'Cypress Project has finished running on TestingBot',
 						);
-						if (this.intervalId) {
-							clearInterval(this.intervalId);
-							this.intervalId = undefined;
-						}
-						return resolve(response);
+					} else {
+						spinner.fail('Cypress Project has finished running on TestingBot');
 					}
-
-					spinner.fail('Cypress Project has finished running on TestingBot');
 
 					if (this.intervalId) {
 						clearInterval(this.intervalId);
 						this.intervalId = undefined;
 					}
-					return reject(errors);
+					return resolve(response);
 				}
 
 				if (
@@ -120,16 +116,14 @@ View results on https://testingbot.com/members/builds/${response.build_id}`);
 		});
 	}
 
-	private getErrors(response: IPollResponse): string[] {
-		const errors: string[] = [];
+	private isSuccess(response: IPollResponse): boolean {
+		let success = true;
 		for (let i = 0; i < response.runs.length; i++) {
 			const testRun = response.runs[i];
-			if (testRun.errors.length > 0) {
-				errors.concat(testRun.errors);
-			}
+			success = success && testRun.success;
 		}
 
-		return errors;
+		return success;
 	}
 
 	private getStatus(response: IPollResponse): IStatus {

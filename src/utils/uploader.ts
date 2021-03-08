@@ -47,7 +47,9 @@ export default class Uploader {
 
 			if (this.config.run_settings.cypressSpecs) {
 				capabilities.map((capability: ICapability) => {
-					capability.cypressSpecs = this.config.run_settings.cypressSpecs.split(',');
+					capability.cypressSpecs = this.config.run_settings.cypressSpecs.split(
+						',',
+					);
 				});
 			}
 

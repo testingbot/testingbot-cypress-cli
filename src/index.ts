@@ -67,6 +67,19 @@ yargs
 					type: 'string',
 					default: undefined,
 				},
+				r: {
+					alias: 'reporter',
+					describe:
+						'Runs a specific reporter. valid reporters: "json", "junit"',
+					type: 'string',
+					default: undefined,
+				},
+				o: {
+					alias: 'reporter-options',
+					describe: 'Options for a reporter',
+					type: 'string',
+					default: undefined,
+				},
 			})
 			.help('help')
 			.wrap(null).argv;

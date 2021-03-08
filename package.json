@@ -36,7 +36,8 @@
     "@typescript-eslint/parser": "^3.8.0",
     "eslint": "^7.6.0",
     "prettier": "^2.0.5",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "xmlbuilder2": "^2.4.0"
   },
   "dependencies": {
     "archiver": "^5.2.0",

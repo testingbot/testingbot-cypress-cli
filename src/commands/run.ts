@@ -8,6 +8,7 @@ import Tunnel from '../utils/tunnel';
 import ora from 'ora';
 import chalk from 'chalk';
 import io from 'socket.io-client';
+import Reporter, { IFormatType } from '../utils/reporter';
 
 interface Arguments {
 	[x: string]: unknown;
@@ -17,6 +18,8 @@ interface Arguments {
 	parallel?: number;
 	e?: string;
 	s?: string;
+	r?: string;
+	o?: string;
 }
 
 interface ISocketData {
@@ -45,13 +48,18 @@ export default class RunProject {
 		this.stopJob();
 		if (this.config && this.config.run_settings.start_tunnel) {
 			if (this.tunnel) {
-				this.tunnel
-					.stop()
-					.then(() => {
-						process.exit();
-					})
-					.catch(log.error);
-				this.tunnel = undefined;
+				try {
+					this.tunnel
+						.stop()
+						.then(() => {
+							process.exit();
+						})
+						.catch(log.error);
+					this.tunnel = undefined;
+				} catch (err) {
+					log.error(chalk.white.bgRed.bold(err));
+					process.exit();
+				}
 			}
 		} else {
 			process.exit();
@@ -230,6 +238,7 @@ export default class RunProject {
 		}
 
 		this.registerCloseHandlers();
+		let success = false;
 
 		try {
 			const response = await this.uploader.start(zipFile);
@@ -238,7 +247,7 @@ export default class RunProject {
 
 			const poller = await this.poller.check(response.id, uploadSpinner);
 			const testCases = this.parseTestCases(poller.runs);
-			const success = this.parseSuccess(poller.runs);
+			success = this.parseSuccess(poller.runs);
 
 			if (process.env.TESTINGBOT_CI && testCases.length > 0) {
 				for (let i = 0; i < testCases.length; i++) {
@@ -246,14 +255,20 @@ export default class RunProject {
 					console.log(`TestingBotSessionId=${testCase.sessionId}`);
 				}
 			}
-
-			process.exit(success === true ? 0 : 1);
 		} catch (err) {
-			log.error(chalk.white.bgRed.bold(err));
+			if (err) {
+				log.error(chalk.white.bgRed.bold(err));
+			}
+		} finally {
 			if (config.run_settings.start_tunnel) {
 				await this.tunnel.stop();
 			}
-			process.exit(1);
+			if (this.argv.r && this.projectId) {
+				const reporter = new Reporter(this.config, this.projectId, this.argv.o);
+				await reporter.format(this.argv.r as IFormatType);
+			}
+
+			process.exit(success === true ? 0 : 1);
 		}
 	}
 }
