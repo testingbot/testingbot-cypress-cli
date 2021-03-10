@@ -53,6 +53,7 @@ Once you've started this command, the tests will start to appear in the [Testing
 
 ## Documentation
 
+Please see the [TestingBot Cypress Documentation](https://testingbot.com/support/cypress) for more documentation on how to use this CLI.
 ### Environment variables
 
 If you prefer to keep your TestingBot credentials in environment variables, you can use `TESTINGBOT_KEY` and `TESTINGBOT_SECRET` environment variables.
