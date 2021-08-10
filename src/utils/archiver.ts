@@ -53,6 +53,21 @@ export default class Archiver {
 					'jpeg',
 					'png',
 					'zip',
+					'npmrc',
+					'xml',
+					'doc',
+					'docx',
+					'ppt',
+					'pptx',
+					'xls',
+					'xlsx',
+					'jsx',
+					'coffee',
+					'cjsx',
+					'csv',
+					'tsv',
+					'yml',
+					'yaml',
 				];
 
 				let ignoredPaths = [
@@ -61,6 +76,11 @@ export default class Archiver {
 					'package-lock.json',
 					'package.json',
 					'testingbot-package.json',
+					'cypress.json',
+					'.idea/**',
+					'.vscode/**',
+					'.npm/**',
+					'.yarn/**',
 				];
 
 				if (
