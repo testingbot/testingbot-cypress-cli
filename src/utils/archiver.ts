@@ -76,7 +76,6 @@ export default class Archiver {
 					'package-lock.json',
 					'package.json',
 					'testingbot-package.json',
-					'cypress.json',
 					'.idea/**',
 					'.vscode/**',
 					'.npm/**',
