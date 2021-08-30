@@ -131,7 +131,7 @@ export default class RunProject {
 
 	private realTimeError(message: string): void {
 		const data: ISocketData = JSON.parse(message);
-		log.error(data.payload);
+		log.error(chalk.white.bgRed.bold(data.payload));
 	}
 
 	private parseSuccess(runs: IRun[]): boolean {
