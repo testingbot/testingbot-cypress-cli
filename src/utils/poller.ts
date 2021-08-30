@@ -53,6 +53,7 @@ export default class Poller {
 	}
 
 	public async check(id: number, spinner: ora.Ora): Promise<IPollResponse> {
+		this.runner.onReady();
 		return new Promise((resolve, reject) => {
 			this.intervalId = setInterval(async () => {
 				const response = await this.getApiResponse(id);
@@ -107,8 +108,6 @@ export default class Poller {
 						log.info(`Cypress Job started.
 View results on https://testingbot.com/members/builds/${response.build_id}`);
 					}
-
-					this.runner.onReady();
 				}
 
 				this.retryNumber += 1;
