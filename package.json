@@ -6,6 +6,7 @@
   "bin": {
     "testingbot-cypress": "lib/index.js"
   },
+  "files": ["lib/*.js", "lib/**/*js"],
   "scripts": {
     "lint": "eslint --ext ts src/",
     "make": "tsc",
