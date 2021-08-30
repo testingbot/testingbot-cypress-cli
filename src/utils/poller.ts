@@ -42,7 +42,7 @@ export default class Poller {
 	private config: IConfig;
 	private retryNumber = 0;
 	private intervalId: NodeJS.Timeout | undefined;
-	private static readonly MAX_RETRIES_WAITING = 60;
+	private static readonly MAX_RETRIES_WAITING = 180;
 	private static readonly MAX_RETRIES_READY = 900;
 	private initSuccess = false;
 	private runner: RunProject;
