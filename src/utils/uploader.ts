@@ -1,4 +1,5 @@
 import fs from 'fs';
+const fsPromises = fs.promises;
 import request from 'request';
 import os from 'os';
 import { IConfig, ICapability } from './config';
@@ -85,7 +86,8 @@ export default class Uploader {
 				},
 			};
 
-			request(requestOptions, function (error, response) {
+			request(requestOptions, async function (error, response) {
+				await fsPromises.unlink(zipFile);
 				if (error) {
 					return reject(error);
 				}
