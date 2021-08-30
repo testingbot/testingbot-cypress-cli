@@ -224,6 +224,7 @@ export default class RunProject {
 				tunnelSpinner.clear();
 			} catch (err) {
 				log.error(chalk.white.bgRed.bold(err.message));
+				await this.tunnel.stop();
 				process.exit(1);
 			}
 			tunnelSpinner.succeed('TestingBot Tunnel Ready');
@@ -234,6 +235,9 @@ export default class RunProject {
 			zipFile = await this.archiver.start();
 		} catch (err) {
 			log.error(chalk.white.bgRed.bold(err));
+			if (config.run_settings.start_tunnel) {
+				await this.tunnel.stop();
+			}
 			process.exit(1);
 		}
 
