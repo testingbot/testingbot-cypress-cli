@@ -1,5 +1,5 @@
 import fs from 'fs';
-
+import path from 'path';
 const fsPromises = fs.promises;
 
 interface IAuth {
@@ -82,6 +82,40 @@ export default {
 			errors.push(
 				`Please add a valid TestingBot scret in the testingbot.json file`,
 			);
+		}
+
+		if (config.run_settings.cypress_project_dir) {
+			try {
+				const projectDirExists = fs
+					.statSync(config.run_settings.cypress_project_dir)
+					.isDirectory();
+				if (!projectDirExists) {
+					throw new Error();
+				}
+			} catch (e) {
+				errors.push(
+					`The supplied cypress_project_dir in testingbot.json is not a directory: ${config.run_settings.cypress_project_dir}`,
+				);
+			}
+
+			try {
+				if (
+					!fs
+						.statSync(
+							path.join(
+								config.run_settings.cypress_project_dir,
+								'cypress.json',
+							),
+						)
+						.isFile()
+				) {
+					throw new Error();
+				}
+			} catch (e) {
+				errors.push(
+					`Could not find cypress.json in cypress_project_dir directory: ${config.run_settings.cypress_project_dir}`,
+				);
+			}
 		}
 
 		return errors;

@@ -187,7 +187,7 @@ export default class RunProject {
 					}`,
 				),
 			);
-			return;
+			process.exit(1);
 		}
 
 		const configValidationErrors = Config.validate(config);
@@ -195,10 +195,10 @@ export default class RunProject {
 		if (configValidationErrors.length > 0) {
 			log.error(
 				chalk.white.bgRed.bold(
-					`Configuration errors: ${configValidationErrors.join('\n')}`,
+					`Configuration errors:\n${configValidationErrors.join('\n')}`,
 				),
 			);
-			return;
+			process.exit(1);
 		}
 
 		this.config = config;
