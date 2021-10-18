@@ -18,7 +18,7 @@ To get started, simply install the CLI and configure it to use your Cypress proj
 You can easily install the CLI via `npm` or `yarn`:
 
 ```bash
-$ npm install -g testinbot-cypress-cli
+$ npm install -g testingbot-cypress-cli
 ```
 
 To use the CLI in combination with [TestingBot Tunnel](https://testingbot.com/support/other/tunnel), you will need to have JDK8 (or higher) installed.
