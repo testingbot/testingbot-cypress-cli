@@ -48,7 +48,7 @@
     "ora": "^5.4.1",
     "request": "^2.88.2",
     "socket.io-client": "^2.4.0",
-    "testingbot-tunnel-launcher": "^1.1.11",
+    "testingbot-tunnel-launcher": "^1.1.12",
     "tracer": "^1.1.5",
     "xmlbuilder2": "^2.4.0",
     "yargs": "^15.4.1"
