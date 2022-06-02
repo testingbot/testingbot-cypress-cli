@@ -13,7 +13,7 @@ export default (): string => {
 		],
 		run_settings: {
 			cypress_project_dir:
-				'/path/to/directory-that-contains-<cypress.json>-file',
+				'/path/to/directory-that-contains-cypress-config-file',
 			build_name: 'build-name',
 			npm_dependencies: {},
 			package_config_options: {},

@@ -38,7 +38,7 @@ $ testingbot-cypress init
 
 This will create a `testingbot.json` file. Please add the `key` and `secret` you obtained from the TestingBot member dashboard in this file.
 
-Next, please supply `cypress_proj_dir` with is the path to the folder that contains the `cypress.json` file.
+Next, please supply `cypress_proj_dir` with is the path to the folder that contains the Cypress configuration file.
 As an example, you can use the [Cypress Kitchen Sink Example](https://github.com/cypress-io/cypress-example-kitchensink).
 
 ### Run tests
