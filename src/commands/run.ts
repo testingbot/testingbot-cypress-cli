@@ -55,7 +55,6 @@ export default class RunProject {
 							process.exit();
 						})
 						.catch(log.error);
-					this.tunnel = undefined;
 				} catch (err) {
 					log.error(chalk.white.bgRed.bold(err));
 					process.exit();
