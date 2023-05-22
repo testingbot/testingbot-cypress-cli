@@ -179,10 +179,10 @@ export default class RunProject {
 		let config: IConfig;
 		try {
 			config = await Config.getConfig(this.configFilePath || `testingbot.json`);
-		} catch (e) {
+		} catch (err: any) {
 			log.error(
 				chalk.white.bgRed.bold(
-					`Configuration file problem: ${e.message} for Config File: ${
+					`Configuration file problem: ${err.message} for Config File: ${
 						this.configFilePath || `testingbot.json`
 					}`,
 				),
@@ -222,7 +222,7 @@ export default class RunProject {
 			try {
 				await this.tunnel.start();
 				tunnelSpinner.clear();
-			} catch (err) {
+			} catch (err: any) {
 				log.error(chalk.white.bgRed.bold(err.message));
 				await this.tunnel.stop();
 				process.exit(1);
