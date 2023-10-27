@@ -94,6 +94,8 @@ export default class Archiver {
 						cwd: this.config.run_settings.cypress_project_dir,
 						matchBase: true,
 						ignore: ignoredPaths,
+						dot: true,
+						nocase: true
 					});
 				});
 
