@@ -1,5 +1,5 @@
 # TestingBot Cypress CLI
-[![npm version](https://badge.fury.io/js/testingbot-cypress-cli.svg)](https://badge.fury.io/js/testingbot-cypress-cli)ac
+[![npm version](https://badge.fury.io/js/testingbot-cypress-cli.svg)](https://badge.fury.io/js/testingbot-cypress-cli)
 
 The `testingbot-cypress-cli` is command-line interface (CLI) which
 allows you to run Cypress tests on TestingBot. TestingBot provides a 
