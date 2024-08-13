@@ -115,7 +115,6 @@ export default class RunProject {
 	}
 
 	private registerCloseHandlers(): void {
-		//do something when app is closing
 		process.on('exit', this.exitHandler.bind(this, { cleanup: true }));
 		process.on('SIGINT', this.exitHandler.bind(this, { exit: true }));
 		process.on('SIGUSR1', this.exitHandler.bind(this, { exit: true }));
@@ -134,24 +133,13 @@ export default class RunProject {
 	}
 
 	private parseSuccess(runs: IRun[]): boolean {
-		let success = true;
-		for (let i = 0; i < runs.length; i++) {
-			success = success && runs[i].success;
-		}
-
-		return success;
+		return runs.every(run => run.success);
 	}
 
 	private parseTestCases(runs: IRun[]): ITest[] {
-		const testCases: ITest[] = [];
-		for (let i = 0; i < runs.length; i++) {
-			const testCase = runs[i].test;
-			if (testCase) {
-				testCases.push(testCase);
-			}
-		}
-
-		return testCases;
+		return runs
+			.map(run => run.test)
+			.filter((testCase): testCase is ITest => !!testCase);
 	}
 
 	private applyArgsToConfig(): void {

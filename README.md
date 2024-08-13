@@ -1,5 +1,5 @@
 # TestingBot Cypress CLI
-[![npm version](https://badge.fury.io/js/testingbot-cypress-cli.svg)](https://badge.fury.io/js/testingbot-cypress-cli)
+[![npm version](https://badge.fury.io/js/testingbot-cypress-cli.svg)](https://badge.fury.io/js/testingbot-cypress-cli)ac
 
 The `testingbot-cypress-cli` is command-line interface (CLI) which
 allows you to run Cypress tests on TestingBot. TestingBot provides a 
@@ -54,6 +54,7 @@ Once you've started this command, the tests will start to appear in the [Testing
 ## Documentation
 
 Please see the [TestingBot Cypress Documentation](https://testingbot.com/support/cypress) for more documentation on how to use this CLI.
+
 ### Environment variables
 
 If you prefer to keep your TestingBot credentials in environment variables, you can use `TESTINGBOT_KEY` and `TESTINGBOT_SECRET` environment variables.
@@ -64,7 +65,7 @@ with a TestingBot CI plugin you will be able to view the test's details from ins
 
 ## Getting Help
 
-If you need help, please reach out to us via info@testingbot.com or our public Slack: https://testingbot.com/support
+If you need help, please reach out to us via info@testingbot.com or the public TestingBot Slack: https://testingbot.com/support
 
 ## License
 

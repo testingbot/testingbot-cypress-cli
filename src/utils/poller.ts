@@ -116,13 +116,7 @@ View results on https://testingbot.com/members/builds/${response.build_id}`);
 	}
 
 	private isSuccess(response: IPollResponse): boolean {
-		let success = true;
-		for (let i = 0; i < response.runs.length; i++) {
-			const testRun = response.runs[i];
-			success = success && testRun.success;
-		}
-
-		return success;
+		return response.runs.every(testRun => testRun.success)
 	}
 
 	private getStatus(response: IPollResponse): IStatus {
