@@ -2,7 +2,7 @@ import { IConfig } from './config';
 const testingbotTunnel = require('testingbot-tunnel-launcher');
 
 export default class Tunnel {
-	private tunnel: any;
+	private tunnel: any = null;
 
 	private config: IConfig;
 
@@ -32,17 +32,26 @@ export default class Tunnel {
 		});
 	}
 
-	public async stop(): Promise<void> {
-		return new Promise((resolve, reject) => {
-			if (this.tunnel === null) {
-				reject(new Error(`Tunnel not active`));
-				return;
-			}
+	public isActive(): boolean {
+		return !!this.tunnel;
+	}
 
-			this.tunnel.close(() => {
-				this.tunnel = null;
-				resolve();
-			});
+	/**
+	 * Closes the tunnel if one is open. Safe to call more than once, and when
+	 * start() failed or never ran: the CLI calls this from its signal and error
+	 * handlers, and `this.tunnel` used to be undefined there, which crashed with
+	 * "Cannot read properties of undefined (reading 'close')" and left the
+	 * tunnel open on TestingBot's side.
+	 */
+	public async stop(): Promise<void> {
+		const tunnel = this.tunnel;
+		this.tunnel = null;
+		if (!tunnel || typeof tunnel.close !== 'function') {
+			return;
+		}
+
+		return new Promise((resolve) => {
+			tunnel.close(() => resolve());
 		});
 	}
 }
