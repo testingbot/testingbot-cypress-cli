@@ -39,7 +39,7 @@ $ testingbot-cypress init
 This will create a `testingbot.json` file. Please add the `key` and `secret` you obtained from the TestingBot member dashboard to its `auth` section (or use the environment variables described below).
 
 Next, set `run_settings.cypress_project_dir` to the path of the folder that contains the Cypress configuration file.
-`start_tunnel` is `true` by default; set it to `false` if the site you test is publicly reachable (the tunnel needs Java).
+`run_settings.start_tunnel` is `true` by default; set it to `false` if the site you test is publicly reachable (the tunnel needs Java).
 As an example, you can use the [Cypress Kitchen Sink Example](https://github.com/cypress-io/cypress-example-kitchensink).
 
 ### Run tests
