@@ -36,9 +36,10 @@ To set up a new configuration file (`testingbot.json`), simply run this command:
 $ testingbot-cypress init
 ```
 
-This will create a `testingbot.json` file. Please add the `key` and `secret` you obtained from the TestingBot member dashboard in this file.
+This will create a `testingbot.json` file. Please add the `key` and `secret` you obtained from the TestingBot member dashboard to its `auth` section (or use the environment variables described below).
 
-Next, please supply `cypress_proj_dir` with is the path to the folder that contains the Cypress configuration file.
+Next, set `run_settings.cypress_project_dir` to the path of the folder that contains the Cypress configuration file.
+`start_tunnel` is `true` by default; set it to `false` if the site you test is publicly reachable (the tunnel needs Java).
 As an example, you can use the [Cypress Kitchen Sink Example](https://github.com/cypress-io/cypress-example-kitchensink).
 
 ### Run tests
@@ -53,7 +54,7 @@ Once you've started this command, the tests will start to appear in the [Testing
 
 ## Documentation
 
-Please see the [TestingBot Cypress Documentation](https://testingbot.com/support/cypress) for more documentation on how to use this CLI.
+Please see the [TestingBot Cypress Documentation](https://testingbot.com/support/web-automate/cypress) for more documentation on how to use this CLI.
 
 ### Environment variables
 
