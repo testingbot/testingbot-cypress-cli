@@ -44,25 +44,38 @@ export default class RunProject {
 		this.argv = argv;
 	}
 
-	public exitHandler(): void {
-		this.stopJob();
-		if (this.config && this.config.run_settings.start_tunnel) {
-			if (this.tunnel) {
-				try {
-					this.tunnel
-						.stop()
-						.then(() => {
-							process.exit();
-						})
-						.catch(log.error);
-				} catch (err) {
-					log.error(chalk.white.bgRed.bold(err));
-					process.exit();
-				}
-			}
-		} else {
-			process.exit();
+	private shuttingDown = false;
+
+	/**
+	 * Stops the remote job, closes the tunnel and exits. Runs on SIGINT/SIGTERM
+	 * and on uncaught errors. It used to skip process.exit() when a tunnel was
+	 * configured but not (yet) open, and the tunnel was only closed if a handler
+	 * happened to be registered by then, so Ctrl-C left READY tunnels behind
+	 * that counted against the account's tunnel limit.
+	 */
+	public async exitHandler(exitCode = 1): Promise<void> {
+		if (this.shuttingDown) {
+			return;
 		}
+		this.shuttingDown = true;
+
+		try {
+			await this.stopJob();
+		} catch (err) {
+			log.error(err);
+		}
+
+		if (this.tunnel && this.tunnel.isActive()) {
+			try {
+				await this.tunnel.stop();
+			} catch (err: any) {
+				log.error(
+					chalk.white.bgRed.bold(err && err.message ? err.message : err),
+				);
+			}
+		}
+
+		process.exit(exitCode);
 	}
 
 	private async stopJob(): Promise<boolean> {
@@ -102,7 +115,7 @@ export default class RunProject {
 			),
 		);
 		log.error(err);
-		this.exitHandler();
+		void this.exitHandler(1);
 	}
 
 	public onReady(): void {
@@ -114,12 +127,18 @@ export default class RunProject {
 		}
 	}
 
-	private registerCloseHandlers(): void {
-		process.on('exit', this.exitHandler.bind(this, { cleanup: true }));
-		process.on('SIGINT', this.exitHandler.bind(this, { exit: true }));
-		process.on('SIGUSR1', this.exitHandler.bind(this, { exit: true }));
-		process.on('SIGUSR2', this.exitHandler.bind(this, { exit: true }));
+	public registerCloseHandlers(): void {
+		// 128 + signal number, the usual shell convention.
+		process.on('SIGINT', () => void this.exitHandler(130));
+		process.on('SIGTERM', () => void this.exitHandler(143));
+		process.on('SIGUSR1', () => void this.exitHandler(1));
+		process.on('SIGUSR2', () => void this.exitHandler(1));
 		process.on('uncaughtException', this.errorHandler.bind(this));
+		process.on('unhandledRejection', (reason) =>
+			this.errorHandler(
+				reason instanceof Error ? reason : new Error(String(reason)),
+			),
+		);
 	}
 
 	private realTimeMessage(message: string): void {
@@ -133,12 +152,12 @@ export default class RunProject {
 	}
 
 	private parseSuccess(runs: IRun[]): boolean {
-		return runs.every(run => run.success);
+		return runs.every((run) => run.success);
 	}
 
 	private parseTestCases(runs: IRun[]): ITest[] {
 		return runs
-			.map(run => run.test)
+			.map((run) => run.test)
 			.filter((testCase): testCase is ITest => !!testCase);
 	}
 
@@ -204,6 +223,9 @@ export default class RunProject {
 			process.exit(1);
 		}
 
+		// Before the tunnel starts, so Ctrl-C at any point closes it.
+		this.registerCloseHandlers();
+
 		if (this.config.run_settings.start_tunnel) {
 			const tunnelSpinner = ora('Starting TestingBot Tunnel').start();
 			try {
@@ -228,7 +250,6 @@ export default class RunProject {
 			process.exit(1);
 		}
 
-		this.registerCloseHandlers();
 		let success = false;
 
 		try {
@@ -246,10 +267,14 @@ export default class RunProject {
 					console.log(`TestingBotSessionId=${testCase.sessionId}`);
 				}
 			}
-		} catch (err) {
+		} catch (err: any) {
 			if (err) {
-				log.error(chalk.white.bgRed.bold(err));
+				log.error(
+					chalk.white.bgRed.bold(err && err.message ? err.message : err),
+				);
 			}
+			// Release whatever is still queued or running remotely for this project.
+			await this.stopJob().catch(() => false);
 		} finally {
 			if (config.run_settings.start_tunnel) {
 				await this.tunnel.stop();
