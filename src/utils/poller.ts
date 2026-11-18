@@ -51,6 +51,9 @@ export default class Poller {
 	private static readonly MAX_RETRIES_WAITING = 180;
 	private static readonly MAX_RETRIES_READY = 900;
 	private static readonly MAX_CONSECUTIVE_API_ERRORS = 5;
+	// Runs are created asynchronously after the upload; if none appear within
+	// this many polls, TestingBot did not start anything for the project.
+	private static readonly MAX_RETRIES_NO_RUNS = 30;
 	private initSuccess = false;
 	private runner: Pick<RunProject, 'onReady'>;
 	private pollIntervalMs: number;
@@ -138,6 +141,22 @@ export default class Poller {
 					return;
 				}
 
+				if (!response.runs || response.runs.length === 0) {
+					// An empty list used to count as DONE, and every() over it as
+					// success: a project that never ran reported a green build.
+					if (this.retryNumber >= Poller.MAX_RETRIES_NO_RUNS) {
+						this.stop();
+						spinner.fail('Cypress Project did not start on TestingBot');
+						return reject(
+							new Error(
+								'TestingBot did not create any runs for this project. Check the browsers and run_settings in testingbot.json.',
+							),
+						);
+					}
+					this.retryNumber += 1;
+					return;
+				}
+
 				const outcome = Poller.failure(response);
 				if (outcome.failed) {
 					this.stop();
@@ -195,7 +214,10 @@ View results on https://testingbot.com/members/builds/${response.build_id}`);
 	}
 
 	private isSuccess(response: IPollResponse): boolean {
-		return response.runs.every((testRun) => testRun.success);
+		return (
+			response.runs.length > 0 &&
+			response.runs.every((testRun) => testRun.success)
+		);
 	}
 
 	private getStatus(response: IPollResponse): IStatus {
