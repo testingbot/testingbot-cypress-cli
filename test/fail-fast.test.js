@@ -119,3 +119,17 @@ test('exitHandler exits even when the tunnel was configured but never opened', a
 	await runner.exitHandler(130);
 	assert.strictEqual(await exited, 130);
 });
+
+test('a project with no runs is not reported as a success', async () => {
+	const s = spinner();
+	const poller = new StubPoller([{ runs: [], version: '14.2.0' }]);
+	await assert.rejects(poller.check(1, s), /did not create any runs/);
+	assert.deepStrictEqual(s.calls.map((c) => c[0]), ['fail']);
+});
+
+test('runs that appear after a few empty polls are still awaited', async () => {
+	const done = { status: 'DONE', capabilities: caps, errors: [], success: true, test: { sessionId: 'abc', environment: {} } };
+	const poller = new StubPoller([{ runs: [] }, { runs: [] }, { runs: [done] }]);
+	const response = await poller.check(1, spinner());
+	assert.strictEqual(response.success, true);
+});

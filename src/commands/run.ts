@@ -152,7 +152,7 @@ export default class RunProject {
 	}
 
 	private parseSuccess(runs: IRun[]): boolean {
-		return runs.every((run) => run.success);
+		return runs.length > 0 && runs.every((run) => run.success);
 	}
 
 	private parseTestCases(runs: IRun[]): ITest[] {
